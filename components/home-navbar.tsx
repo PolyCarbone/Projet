@@ -65,10 +65,10 @@ const Navbar1 = ({
         title: "PolyCarbone",
     },
     menu = [
-        { title: "Mes défis", url: "/", icon: <SquareCheckBig className="size-4" /> },
-        { title: "Mes amis", url: "/", icon: <UsersRound className="size-4" /> },
-        { title: "Mon profil", url: "/", icon: <CircleUserRound className="size-4" /> },
-        { title: "Refaire un bilan carbone", url: "/", icon: <FlaskConical className="size-4" /> },
+        { title: "Mes défis", url: "/challenges", icon: <SquareCheckBig className="size-4" /> },
+        { title: "Mes amis", url: "/social", icon: <UsersRound className="size-4" /> },
+        { title: "Mon profil", url: "/profile", icon: <CircleUserRound className="size-4" /> },
+        { title: "Refaire un bilan carbone", url: "/evaluation", icon: <FlaskConical className="size-4" /> },
     ],
     auth = {
         login: { title: "Login", url: "#" },

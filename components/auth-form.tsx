@@ -95,7 +95,7 @@ export function AuthForm({
             }
 
             toast.success("Connexion réussie !")
-            router.push("/")
+            router.push("/onboarding")
             router.refresh()
         } catch (error: any) {
             toast.error(translateAuthError(error as any))
@@ -140,9 +140,9 @@ export function AuthForm({
                 return
             }
 
-            toast.success("Inscription réussie ! Connexion en cours...")
+            toast.success("Inscription réussie ! Vérifiez votre email pour continuer.")
             setTimeout(() => {
-                router.push("/")
+                router.push("/onboarding")
                 router.refresh()
             }, 1000)
         } catch (error: any) {
@@ -156,7 +156,7 @@ export function AuthForm({
         try {
             await authClient.signIn.social({
                 provider,
-                callbackURL: "/",
+                callbackURL: "/onboarding",
             })
         } catch (error: any) {
             toast.error(error?.message || `Erreur lors de la connexion avec ${provider}`)

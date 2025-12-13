@@ -12,15 +12,22 @@ datasource db {
 }
 
 model User {
-  id            String    @id
-  name          String
-  email         String
-  emailVerified Boolean   @default(false)
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @default(now()) @updatedAt
-  sessions      Session[]
-  accounts      Account[]
+  id              String           @id
+  name            String
+  email           String
+  emailVerified   Boolean          @default(false)
+  image           String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @default(now()) @updatedAt
+  sessions        Session[]
+  accounts        Account[]
+  carbonFootprint CarbonFootprint?
+
+  // Onboarding fields
+  username            String? @unique // Pseudonyme unique
+  avatarColor         String? // Couleur de l'avatar (hex ou nom)
+  onboardingStep      Int     @default(0) // 0=non commencé, 1=pseudo, 2=avatar, 3=test carbone, 4=terminé
+  onboardingCompleted Boolean @default(false)
 
   @@unique([email])
   @@map("user")
@@ -69,4 +76,28 @@ model Verification {
   updatedAt  DateTime @default(now()) @updatedAt
 
   @@map("verification")
+}
+
+model CarbonFootprint {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Bilan total en kg CO2e
+  totalFootprint Float
+
+  // Catégories principales (en kg CO2e)
+  transport       Float?
+  alimentation    Float?
+  logement        Float?
+  divers          Float?
+  serviceSocietal Float?
+
+  // Données brutes du simulateur (JSON)
+  rawData Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("carbon_footprint")
 }

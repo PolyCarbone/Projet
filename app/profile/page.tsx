@@ -3,26 +3,45 @@
 import { useEffect, useState } from "react"
 import { Navbar1 } from "@/components/home-navbar"
 import { ProfileHeader } from "@/components/profile-header"
+import { CarbonFootprintChart } from "@/components/carbon-footprint-chart"
 import { authClient } from "@/lib/auth-client"
 import { Skeleton } from "@/components/ui/skeleton"
 
+interface CarbonFootprintData {
+    transport?: number | null
+    alimentation?: number | null
+    logement?: number | null
+    divers?: number | null
+    totalFootprint?: number
+}
+
 export default function ProfilePage() {
     const [session, setSession] = useState<any>(null)
+    const [carbonFootprint, setCarbonFootprint] = useState<CarbonFootprintData | null>(null)
     const [isLoading, setIsLoading] = useState(true)
 
     useEffect(() => {
-        const fetchSession = async () => {
+        const fetchData = async () => {
             try {
                 const { data } = await authClient.getSession()
                 setSession(data)
+
+                // Récupérer les données d'empreinte carbone si l'utilisateur est connecté
+                if (data?.user) {
+                    const response = await fetch("/api/carbon-footprint")
+                    if (response.ok) {
+                        const footprintData = await response.json()
+                        setCarbonFootprint(footprintData)
+                    }
+                }
             } catch (error) {
-                console.error("Failed to fetch session:", error)
+                console.error("Failed to fetch data:", error)
             } finally {
                 setIsLoading(false)
             }
         }
 
-        fetchSession()
+        fetchData()
     }, [])
 
     const handleUpdateName = async (newName: string) => {
@@ -65,16 +84,21 @@ export default function ProfilePage() {
                             </div>
                         </div>
                     ) : session?.user ? (
-                        <ProfileHeader
-                            user={{
-                                name: session.user.name || "Utilisateur",
-                                email: session.user.email,
-                                image: session.user.image,
-                                createdAt: session.user.createdAt,
-                            }}
-                            isOwnProfile={true}
-                            onUpdateName={handleUpdateName}
-                        />
+                        <>
+                            <ProfileHeader
+                                user={{
+                                    name: session.user.name || "Utilisateur",
+                                    email: session.user.email,
+                                    image: session.user.image,
+                                    createdAt: session.user.createdAt,
+                                }}
+                                isOwnProfile={true}
+                                onUpdateName={handleUpdateName}
+                            />
+                            <div className="px-4 pb-8 max-w-2xl mx-auto">
+                                <CarbonFootprintChart data={carbonFootprint} />
+                            </div>
+                        </>
                     ) : (
                         <div className="p-8 text-center">
                             <p className="text-muted-foreground">Vous devez être connecté pour voir votre profil.</p>
@@ -84,4 +108,4 @@ export default function ProfilePage() {
             </div>
         </div>
     )
-} 
+}
