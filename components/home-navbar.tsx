@@ -1,7 +1,8 @@
 "use client"
 
-import { Book, Menu, Sprout, Sunset, Trees, Zap, CircleUserRound, ChevronsUpDown, UsersRound, LogOut, SquareCheckBig, FlaskConical } from "lucide-react";
+import { Book, Menu, Sunset, Trees, Zap, CircleUserRound, ChevronsUpDown, UsersRound, LogOut, SquareCheckBig, FlaskConical } from "lucide-react";
 import Link from "next/link";
+import { Logo } from "@/components/logo";
 
 import {
     Accordion,
@@ -106,9 +107,7 @@ const Navbar1 = ({
                     <div className="flex items-center gap-6">
                         {/* Logo */}
                         <Link href={logo.url} className="flex items-center gap-2">
-                            <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
-                                <Sprout className="size-4" />
-                            </div>
+                            <Logo className="size-6" width={24} height={24} />
                             <span className="text-lg font-semibold tracking-tighter">
                                 {logo.title}
                             </span>
@@ -169,11 +168,9 @@ const Navbar1 = ({
                 <div className="block lg:hidden">
                     <div className="relative flex items-center justify-between px-4">
                         {/* Logo à gauche */}
-                        <Link href={logo.url} className="flex items-center">
-                            <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
-                                <Sprout className="size-4" />
-                            </div>
-                            <span className="text-lg font-semibold tracking-tighter ml-2">
+                        <Link href={logo.url} className="flex items-center gap-2">
+                            <Logo className="size-6" width={24} height={24} />
+                            <span className="text-lg font-semibold tracking-tighter">
                                 {logo.title}
                             </span>
                         </Link>
@@ -200,9 +197,7 @@ const Navbar1 = ({
                                     <SheetHeader>
                                         <SheetTitle>
                                             <Link href={logo.url} className="flex items-center gap-2">
-                                                <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
-                                                    <Sprout className="size-4" />
-                                                </div>
+                                                <Logo className="size-6" width={24} height={24} />
                                                 <span className="text-lg font-semibold tracking-tighter">
                                                     {logo.title}
                                                 </span>

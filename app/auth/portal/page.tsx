@@ -1,7 +1,7 @@
-import { Sprout } from "lucide-react"
 import Link from "next/link"
 
 import { AuthForm } from "@/components/auth-form"
+import { Logo } from "@/components/logo"
 
 export default function LoginPage() {
     return (
@@ -9,9 +9,7 @@ export default function LoginPage() {
             <div className="flex flex-col gap-4 p-6 md:p-10">
                 <div className="flex justify-center gap-2 md:justify-start">
                     <Link href="/" className="flex items-center gap-2 font-medium">
-                        <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
-                            <Sprout className="size-4" />
-                        </div>
+                        <Logo className="size-6" width={24} height={24} />
                         PolyCarbone
                     </Link>
                 </div>
