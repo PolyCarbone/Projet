@@ -31,9 +31,27 @@ export const auth = betterAuth({
         provider: "postgresql",
     }),
 
+    user: {
+        additionalFields: {
+            username: {
+                type: "string",
+                unique: true,
+                required: false,
+            },
+            onboardingStep: {
+                type: "number",
+                default: 0,
+            },
+            avatarColor: {
+                type: "string",
+                required: false,
+            }
+        }
+    },
+
     emailAndPassword: {
         enabled: true,
-        autoSignIn: false,
+        autoSignIn: true,
         // Ne pas bloquer la connexion si l'email n'est pas vérifié
         requireEmailVerification: false,
         sendResetPassword: async ({ user, url }) => {
@@ -96,11 +114,9 @@ export const auth = betterAuth({
         // Session is considered fresh if created within last 24 hours
         freshAge: 60 * 60 * 24, // 1 day
 
-        // Enable cookie caching to reduce database calls
-        // This stores session data in a signed cookie for faster access
+        // Disable cookie caching to always fetch fresh session data from database
         cookieCache: {
-            enabled: true,
-            maxAge: 5 * 60 // Cache duration: 5 minutes
+            enabled: false
         }
     },
 

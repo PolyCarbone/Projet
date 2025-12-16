@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { ArrowBigLeftDash } from "lucide-react"
 import {
     Card,
     CardContent,
@@ -389,20 +390,23 @@ export function AuthForm({
                                                     Doit contenir au moins 12 caractères.
                                                 </FieldDescription>
                                             </Field>
-                                            <div className="flex gap-2">
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    className="w-full"
-                                                    onClick={() => setStep(1)}
-                                                    disabled={isLoading || isSocialLoading !== null}
-                                                >
-                                                    Retour
-                                                </Button>
-                                                <Button type="submit" className="w-full" disabled={isLoading || isSocialLoading !== null}>
-                                                    {isLoading ? "Création..." : "S'inscrire"}
-                                                </Button>
-                                            </div>
+                                            <Field>
+                                                <div className="flex gap-2">
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="icon"
+                                                        className="flex-shrink-0"
+                                                        onClick={() => setStep(1)}
+                                                        disabled={isLoading || isSocialLoading !== null}
+                                                    >
+                                                        <ArrowBigLeftDash className="h-4 w-4" />
+                                                    </Button>
+                                                    <Button type="submit" className="flex-1" disabled={isLoading || isSocialLoading !== null}>
+                                                        {isLoading ? "Création..." : "S'inscrire"}
+                                                    </Button>
+                                                </div>
+                                            </Field>
                                         </FieldGroup>
                                     </form>
                                 </div>
@@ -412,12 +416,14 @@ export function AuthForm({
                 </CardContent>
             </Card>
 
-            {mode === "signup" && (
-                <FieldDescription className="px-6 text-center">
-                    En vous inscrivant, vous acceptez nos <a href="#">Conditions d'utilisation</a>{" "}
-                    et <a href="#">Politique de confidentialité</a>.
-                </FieldDescription>
-            )}
-        </div>
+            {
+                mode === "signup" && (
+                    <FieldDescription className="px-6 text-center">
+                        En vous inscrivant, vous acceptez nos <a href="#">Conditions d'utilisation</a>{" "}
+                        et <a href="#">Politique de confidentialité</a>.
+                    </FieldDescription>
+                )
+            }
+        </div >
     )
 }

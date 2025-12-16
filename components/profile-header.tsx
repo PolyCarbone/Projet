@@ -12,6 +12,8 @@ interface ProfileHeaderProps {
         email: string
         image?: string | null
         createdAt?: Date | string
+        username: string
+        avatarColor?: string | null
     }
     isOwnProfile?: boolean
     onUpdateName?: (newName: string) => Promise<void>
@@ -21,15 +23,6 @@ export function ProfileHeader({ user, isOwnProfile = false, onUpdateName }: Prof
     const [isEditing, setIsEditing] = useState(false)
     const [tempName, setTempName] = useState(user.name)
     const [isLoading, setIsLoading] = useState(false)
-
-    const getInitials = (name: string) => {
-        return name
-            .split(" ")
-            .map((n) => n[0])
-            .join("")
-            .toUpperCase()
-            .slice(0, 2)
-    }
 
     const formatDate = (date: Date | string | undefined) => {
         if (!date) return "Date inconnue"
@@ -69,12 +62,11 @@ export function ProfileHeader({ user, isOwnProfile = false, onUpdateName }: Prof
                 {/* Avatar - positioned to overlap banner */}
                 <div className="absolute left-1/2 -translate-x-1/2 -bottom-14">
                     <div className="relative">
-                        <Avatar className="h-28 w-28 border-4 border-background ring-2 ring-primary">
-                            <AvatarImage src={user.image || ""} alt={user.name} />
-                            <AvatarFallback className="text-2xl bg-secondary text-foreground">
-                                {getInitials(user.name)}
-                            </AvatarFallback>
-                        </Avatar>
+                        <div
+                            className="h-28 w-28 rounded-full border-4 border-background ring-2 ring-primary flex items-center justify-center text-white text-3xl font-bold"
+                            style={{ backgroundColor: user.avatarColor || "#2822c5ff" }}
+                        >
+                        </div>
                         <div className="absolute bottom-1 right-1 h-5 w-5 rounded-full bg-green-500 border-2 border-background" />
                     </div>
                 </div>
@@ -102,7 +94,7 @@ export function ProfileHeader({ user, isOwnProfile = false, onUpdateName }: Prof
                         </div>
                     ) : (
                         <div className="flex items-center gap-2">
-                            <h1 className="text-xl font-bold text-foreground">{user.name}</h1>
+                            <h1 className="text-xl font-bold text-foreground">{user.username}</h1>
                             {isOwnProfile && (
                                 <button
                                     onClick={() => setIsEditing(true)}

@@ -76,8 +76,10 @@ export default function EvaluationPage() {
                 if (response.ok) {
                     if (isOnboarding) {
                         // Rediriger vers le profil après l'onboarding
+                        // Utiliser window.location pour forcer un rechargement complet
+                        // et rafraîchir la session côté serveur
                         alert("🎉 Félicitations ! Votre bilan carbone a été enregistré. Bienvenue sur PolyCarbone !");
-                        router.push("/profile");
+                        window.location.href = "/profile";
                     } else {
                         alert("Votre bilan carbone a été sauvegardé ! Rendez-vous sur votre profil pour le consulter.");
                     }

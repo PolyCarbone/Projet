@@ -27,7 +27,6 @@ interface UserData {
     username: string | null
     avatarColor: string | null
     onboardingStep: number
-    onboardingCompleted: boolean
     hasCarbonFootprint: boolean
 }
 

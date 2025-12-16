@@ -24,10 +24,9 @@ model User {
   carbonFootprint CarbonFootprint?
 
   // Onboarding fields
-  username            String? @unique // Pseudonyme unique
-  avatarColor         String? // Couleur de l'avatar (hex ou nom)
-  onboardingStep      Int     @default(0) // 0=non commencé, 1=pseudo, 2=avatar, 3=test carbone, 4=terminé
-  onboardingCompleted Boolean @default(false)
+  username       String? @unique // Pseudonyme unique
+  avatarColor    String? // Couleur de l'avatar (hex ou nom)
+  onboardingStep Int     @default(0) // 0=non commencé, 1=pseudo, 2=avatar, 3=test carbone, 4=terminé
 
   @@unique([email])
   @@map("user")

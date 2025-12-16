@@ -24,7 +24,6 @@ export async function GET() {
                 username: true,
                 avatarColor: true,
                 onboardingStep: true,
-                onboardingCompleted: true,
                 carbonFootprint: {
                     select: { id: true }
                 }
@@ -44,7 +43,6 @@ export async function GET() {
             username: user.username,
             avatarColor: user.avatarColor,
             onboardingStep: user.onboardingStep,
-            onboardingCompleted: user.onboardingCompleted,
             hasCarbonFootprint: !!user.carbonFootprint,
         });
     } catch (error) {

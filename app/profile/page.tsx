@@ -91,6 +91,8 @@ export default function ProfilePage() {
                                     email: session.user.email,
                                     image: session.user.image,
                                     createdAt: session.user.createdAt,
+                                    username: session.user.username || "utilisateur",
+                                    avatarColor: session.user.avatarColor,
                                 }}
                                 isOwnProfile={true}
                                 onUpdateName={handleUpdateName}

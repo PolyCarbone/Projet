@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 
 // Routes d'authentification (accès uniquement si NON connecté)
 const AUTH_ROUTES = ["/auth/portal", "/auth/forgot-password", "/auth/reset-password"];
@@ -8,15 +9,10 @@ const AUTH_ROUTES = ["/auth/portal", "/auth/forgot-password", "/auth/reset-passw
 const ONBOARDING_ROUTES = ["/onboarding"];
 
 // Routes protégées (accès uniquement si connecté ET onboarding terminé)
-const PROTECTED_ROUTES = ["/profile", "/social", "/challenges"];
+const PROTECTED_ROUTES = ["/profile", "/social", "/challenges", "/evaluation", "/onboarding"];
 
-// Routes publiques (accès libre)
-const PUBLIC_ROUTES = ["/", "/api"];
 
-// Route d'évaluation - cas spécial: accessible en onboarding avec ?onboarding=true
-const EVALUATION_ROUTE = "/evaluation";
-
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
     const pathname = request.nextUrl.pathname;
 
     // Ignorer les fichiers statiques et les routes API
@@ -29,46 +25,44 @@ export function proxy(request: NextRequest) {
     }
 
     // Vérifier si l'utilisateur a un cookie de session
-    const sessionCookie = request.cookies.get("polycarbone.session_token");
-    const isAuthenticated = !!sessionCookie;
+    const session = await auth.api.getSession({
+        headers: await headers()
+    })
 
-    // Route d'authentification
-    const isAuthRoute = AUTH_ROUTES.some(route =>
-        pathname === route || pathname.startsWith(route + "/")
-    );
+    const isAuthenticated = !!session?.user;
 
-    // Si l'utilisateur est connecté et tente d'accéder à une page d'auth
-    if (isAuthRoute && isAuthenticated) {
-        return NextResponse.redirect(new URL("/onboarding", request.url));
+    // Si l'utilisateur n'est pas authentifié
+    if (!isAuthenticated && PROTECTED_ROUTES.some(route => pathname.startsWith(route))) {
+        // Si l'utilisateur n'est pas connecté et essaie d'accéder à une route protégée
+        return NextResponse.redirect(new URL("/auth/portal", request.url));
     }
 
-    // Si l'utilisateur n'est pas connecté et tente d'accéder à une route protégée
-    const isProtectedRoute = PROTECTED_ROUTES.some(route =>
-        pathname === route || pathname.startsWith(route + "/")
-    );
-    const isOnboardingRoute = ONBOARDING_ROUTES.some(route =>
-        pathname === route || pathname.startsWith(route + "/")
-    );
-    const isEvaluationRoute = pathname === EVALUATION_ROUTE || pathname.startsWith(EVALUATION_ROUTE + "/");
+    // Si l'utilisateur est authentifié
+    if (isAuthenticated) {
+        const onboardingStep = session?.user?.onboardingStep || 0;
 
-    if (!isAuthenticated && (isProtectedRoute || isOnboardingRoute)) {
-        return NextResponse.redirect(new URL("/auth/portal?mode=login", request.url));
-    }
-
-    // Pour la page d'évaluation en mode onboarding, permettre l'accès
-    if (isEvaluationRoute) {
-        const isOnboardingMode = request.nextUrl.searchParams.get("onboarding") === "true";
-
-        if (!isAuthenticated && !isOnboardingMode) {
-            return NextResponse.redirect(new URL("/auth/portal?mode=login", request.url));
+        // Permettre l'accès à /evaluation pendant l'onboarding
+        if (pathname.startsWith("/evaluation")) {
+            return NextResponse.next();
         }
 
-        // En mode onboarding, on laisse passer
-        return NextResponse.next();
-    }
+        // Si l'onboarding n'est pas terminé (step < 4)
+        if (onboardingStep < 4) {
+            // Si au step 3, rediriger vers /evaluation pour faire le test carbone
+            if (onboardingStep === 3 && !pathname.startsWith("/evaluation") && !pathname.startsWith("/onboarding")) {
+                return NextResponse.redirect(new URL("/evaluation?onboarding=true", request.url));
+            }
+            // Pour les autres steps, rediriger vers /onboarding
+            if (!pathname.startsWith("/onboarding")) {
+                return NextResponse.redirect(new URL("/onboarding", request.url));
+            }
+        }
 
-    // Pour les routes protégées et onboarding, vérifier le statut d'onboarding côté client
-    // Le OnboardingProvider gérera les redirections plus fines
+        // Si l'utilisateur est connecté et essaie d'accéder à une route d'authentification
+        if (AUTH_ROUTES.some(route => pathname.startsWith(route))) {
+            return NextResponse.redirect(new URL("/challenges", request.url));
+        }
+    }
 
     return NextResponse.next();
 }

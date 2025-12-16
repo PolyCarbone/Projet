@@ -67,7 +67,6 @@ export async function POST(request: NextRequest) {
             where: { id: session.user.id },
             data: {
                 onboardingStep: 4,
-                onboardingCompleted: true,
             },
         });
 
