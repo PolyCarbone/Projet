@@ -35,7 +35,7 @@ export default async function Icon() {
                         width: '100%',
                         height: '100%',
                         objectFit: 'cover',
-                        borderRadius: '50%',
+                        borderRadius: '10%',
                     }}
                 />
             </div>

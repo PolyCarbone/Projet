@@ -13,7 +13,7 @@ export function Logo({ className = "size-4", width = 16, height = 16 }: LogoProp
             alt="PolyCarbone Logo"
             width={width}
             height={height}
-            className={`rounded-full ${className}`}
+            className={`rounded-sm ${className}`}
         />
     )
 }

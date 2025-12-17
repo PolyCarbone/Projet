@@ -113,12 +113,6 @@ export function CarbonFootprintPieChart({ data }: CarbonFootprintChartProps) {
     if (!isMounted) {
         return (
             <Card className="backdrop-blur-xl bg-white/80 dark:bg-black/60 border-zinc-200/50 dark:border-zinc-800">
-                <CardHeader>
-                    <CardTitle>Empreinte Carbone</CardTitle>
-                    <CardDescription>
-                        Total : {totalFootprint.toLocaleString("fr-FR", { maximumFractionDigits: 0 })} kg CO₂e / an
-                    </CardDescription>
-                </CardHeader>
                 <CardContent>
                     <div className="h-[200px] w-full flex flex-col justify-center gap-4">
                         <Skeleton className="h-7 w-full" />
@@ -133,12 +127,6 @@ export function CarbonFootprintPieChart({ data }: CarbonFootprintChartProps) {
 
     return (
         <Card className="backdrop-blur-xl bg-white/80 dark:bg-black/60 border-zinc-200/50 dark:border-zinc-800">
-            <CardHeader>
-                <CardTitle>Empreinte Carbone</CardTitle>
-                <CardDescription>
-                    Total : {totalFootprint.toLocaleString("fr-FR", { maximumFractionDigits: 0 })} kg CO₂e / an
-                </CardDescription>
-            </CardHeader>
             <CardContent>
                 <ChartContainer config={chartConfig} className="mx-auto aspect-square max-h-[300px]">
                     <PieChart>

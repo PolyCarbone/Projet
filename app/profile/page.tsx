@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react"
 import { Navbar1 } from "@/components/home-navbar"
 import { ProfileHeader } from "@/components/profile-header"
-import { CarbonFootprintChart } from "@/components/carbon-footprint-chart"
+import { CarbonFootprintPieChart } from "@/components/carbon-footprint-pie-chart"
+import { CarbonFootprintBarChart } from "@/components/carbon-footprint-bar-chart"
 import { authClient } from "@/lib/auth-client"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -11,6 +12,7 @@ interface CarbonFootprintData {
     transport?: number | null
     alimentation?: number | null
     logement?: number | null
+    serviceSocietal?: number | null
     divers?: number | null
     totalFootprint?: number
 }
@@ -97,8 +99,11 @@ export default function ProfilePage() {
                                 isOwnProfile={true}
                                 onUpdateName={handleUpdateName}
                             />
-                            <div className="px-4 pb-8 max-w-2xl mx-auto">
-                                <CarbonFootprintChart data={carbonFootprint} />
+                            <div className="px-4 pb-8 max-w-7xl mx-auto">
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    <CarbonFootprintPieChart data={carbonFootprint} />
+                                    <CarbonFootprintBarChart data={carbonFootprint} />
+                                </div>
                             </div>
                         </>
                     ) : (
