@@ -45,3 +45,7 @@ next-env.d.ts
 
 # Google backup codes
 Backup-codes-polycarbone.txt
+
+
+# prisma
+/prisma/migrations/
