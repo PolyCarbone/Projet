@@ -1,8 +1,15 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
+When you just come in the project, you need to run these command to initialize the project, but first you need the .env, the .env.local and Docker. 
 
-First, run the development server:
+npm install
+docker compose up -d
+npx prisma generate
+npx prisma migrate dev --name init
+npx prisma generate  //To control
+
+Now you can run the development server:
 
 ```bash
 npm run dev
