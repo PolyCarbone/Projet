@@ -2,7 +2,7 @@ import { ImageResponse } from 'next/og'
 import { readFile } from 'fs/promises'
 import { join } from 'path'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 export const size = {
     width: 32,
