@@ -14,7 +14,7 @@ export function Logo({ className = "size-4", width = 16, height = 16, radiusClas
             alt="PolyCarbone Logo"
             width={width}
             height={height}
-            className={`${radiusClass} ${className}`}
+            className={`rounded-sm ${className}`}
         />
     )
 }
