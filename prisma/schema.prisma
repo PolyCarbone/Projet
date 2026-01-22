@@ -1,3 +1,6 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client"
   output   = "../lib/generated/prisma"
@@ -8,74 +11,31 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ============================================
-// GESTION DES UTILISATEURS ET AUTHENTIFICATION
-// ============================================
-
 model User {
-  id            String   @id
-  name          String
-  email         String   @unique
-  emailVerified Boolean  @default(false)
-  image         String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id              String           @id
+  name            String
+  email           String
+  emailVerified   Boolean          @default(false)
+  image           String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @default(now()) @updatedAt
+  sessions        Session[]
+  accounts        Account[]
+  carbonFootprint CarbonFootprint?
 
-  // Authentification
-  sessions Session[]
-  accounts Account[]
+  // Onboarding fields
+  username       String? @unique // Pseudonyme unique
+  avatarColor    String? // Couleur de l'avatar (hex ou nom)
+  onboardingStep Int     @default(0) // 0=non commencé, 1=pseudo, 2=avatar, 3=test carbone, 4=terminé
 
-  // Onboarding
-  username       String? @unique
-  onboardingStep Int     @default(0)
-
-  // Personnalisation du profil
-  avatarId          String?   @unique
-  avatar            Cosmetic? @relation("UserAvatar", fields: [avatarId], references: [id])
-  avatarBorderColor String? // Couleur du contour
-  bannerId          String?   @unique
-  banner            Cosmetic? @relation("UserBanner", fields: [bannerId], references: [id])
-  usernameColor     String? // Couleur du pseudo
-  darkMode          Boolean   @default(false)
-
-  // Statistiques
-  totalCO2Saved    Float     @default(0) // kg CO2 économisé total
-  currentStreak    Int       @default(0) // Jours consécutifs actuels
-  longestStreak    Int       @default(0) // Record de jours consécutifs
-  lastActivityDate DateTime? // Pour calculer la streak
-
-  // Parrainage
-  referralCode String? @unique
-  referredBy   String?
-  referrer     User?   @relation("Referrals", fields: [referredBy], references: [id])
-  referrals    User[]  @relation("Referrals")
-
-  // Admin
-  isAdmin Boolean @default(false)
-
-  // Relations
-  carbonFootprint        CarbonFootprint?
-  carbonFootprintHistory CarbonFootprintHistory[]
-  userChallenges         UserChallenge[]
-  userCosmetics          UserCosmetic[]
-  friendsInitiated       Friendship[]             @relation("FriendshipInitiator")
-  friendsReceived        Friendship[]             @relation("FriendshipReceiver")
-  posts                  Post[]
-  likes                  Like[]
-  comments               Comment[]
-  notifications          Notification[]
-  sentMessages           Message[]                @relation("MessageSender")
-  receivedMessages       Message[]                @relation("MessageReceiver")
-  teamMemberships        TeamMember[]
-  teamsCreated           Team[]
-
+  @@unique([email])
   @@map("user")
 }
 
 model Session {
   id        String   @id
   expiresAt DateTime
-  token     String   @unique
+  token     String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   ipAddress String?
@@ -83,6 +43,7 @@ model Session {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@unique([token])
   @@map("session")
 }
 
@@ -111,375 +72,31 @@ model Verification {
   value      String
   expiresAt  DateTime
   createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  updatedAt  DateTime @default(now()) @updatedAt
 
   @@map("verification")
 }
-
-// ============================================
-// EMPREINTE CARBONE
-// ============================================
 
 model CarbonFootprint {
   id     String @id @default(cuid())
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  totalFootprint  Float
+  // Bilan total en kg CO2e
+  totalFootprint Float
+
+  // Catégories principales (en kg CO2e)
   transport       Float?
   alimentation    Float?
   logement        Float?
   divers          Float?
   serviceSocietal Float?
+
+  // Données brutes du simulateur (JSON)
+  rawData Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("carbon_footprint")
-}
-
-model CarbonFootprintHistory {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  totalFootprint  Float
-  transport       Float?
-  alimentation    Float?
-  logement        Float?
-  divers          Float?
-  serviceSocietal Float?
-
-  createdAt DateTime @default(now())
-
-  @@index([userId, createdAt])
-  @@map("carbon_footprint_history")
-}
-
-// ============================================
-// DÉFIS
-// ============================================
-
-model Challenge {
-  id          String  @id @default(cuid())
-  title       String
-  description String
-  category    String // transport, alimentation, logement, divers, serviceSocietal
-  type        String // daily, annual, event
-  co2Impact   Float // Impact potentiel en kg CO2e
-  isActive    Boolean @default(true)
-
-  // Pour les défis événementiels
-  eventId String?
-  event   Event?  @relation(fields: [eventId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  userChallenges UserChallenge[]
-
-  @@index([type, category, isActive])
-  @@map("challenge")
-}
-
-model UserChallenge {
-  id          String    @id @default(cuid())
-  userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  challengeId String
-  challenge   Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
-
-  status      String    @default("proposed") // proposed, active, completed, skipped, changed
-  startedAt   DateTime  @default(now())
-  completedAt DateTime?
-  co2Saved    Float? // CO2 réellement économisé
-
-  // Pour tracking des changements de défis
-  wasChanged Boolean @default(false)
-
-  @@unique([userId, challengeId, startedAt])
-  @@index([userId, status])
-  @@map("user_challenge")
-}
-
-model Event {
-  id          String   @id @default(cuid())
-  name        String
-  description String
-  startDate   DateTime
-  endDate     DateTime
-  isActive    Boolean  @default(true)
-
-  challenges Challenge[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("event")
-}
-
-// ============================================
-// COSMÉTIQUES ET RÉCOMPENSES
-// ============================================
-
-model Cosmetic {
-  id         String  @id @default(cuid())
-  type       String // avatar, border, banner, username_color
-  name       String
-  imageUrl   String? // Pour avatars et bannières
-  colorValue String? // Pour couleurs (hex)
-
-  userCosmetics        UserCosmetic[]
-  userAvatar           User?                 @relation("UserAvatar")
-  userBanner           User?                 @relation("UserBanner")
-  rewardThresholds     RewardThreshold[]
-  teamRewardThresholds TeamRewardThreshold[] @relation("TeamRewards")
-
-  @@map("cosmetic")
-}
-
-// The junction table between User and Cosmetic : which cosmetics a user has unlocked
-model UserCosmetic {
-  id         String   @id @default(cuid())
-  userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  cosmeticId String
-  cosmetic   Cosmetic @relation(fields: [cosmeticId], references: [id], onDelete: Cascade)
-
-  unlockedAt DateTime @default(now())
-  source     String // referral, streak, co2_personal, co2_global, event
-
-  @@unique([userId, cosmeticId])
-  @@index([userId])
-  @@map("user_cosmetic")
-}
-
-model RewardThreshold {
-  id         String   @id @default(cuid())
-  type       String // referral, streak, co2_personal, co2_global
-  threshold  Float // Valeur du palier
-  cosmeticId String
-  cosmetic   Cosmetic @relation(fields: [cosmeticId], references: [id])
-  isActive   Boolean  @default(true)
-
-  @@unique([type, threshold])
-  @@map("reward_threshold")
-}
-
-// ============================================
-// SOCIAL
-// ============================================
-
-model Friendship {
-  id          String @id @default(cuid())
-  initiatorId String
-  initiator   User   @relation("FriendshipInitiator", fields: [initiatorId], references: [id], onDelete: Cascade)
-  receiverId  String
-  receiver    User   @relation("FriendshipReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
-
-  status    String   @default("pending") // pending, accepted, rejected, blocked
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([initiatorId, receiverId])
-  @@index([receiverId, status])
-  @@map("friendship")
-}
-
-model Post {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  type    String // achievement (palier atteint), cosmetic_unlock, challenge_completed
-  content Json // Données flexibles selon le type
-
-  createdAt DateTime @default(now())
-
-  likes    Like[]
-  comments Comment[]
-
-  @@index([userId, createdAt])
-  @@map("post")
-}
-
-model Like {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  postId String
-  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-
-  @@unique([userId, postId])
-  @@map("like")
-}
-
-model Comment {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  postId String
-  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
-
-  content   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([postId, createdAt])
-  @@map("comment")
-}
-
-model Message {
-  id         String @id @default(cuid())
-  senderId   String
-  sender     User   @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
-  receiverId String
-  receiver   User   @relation("MessageReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
-
-  content String
-  isRead  Boolean @default(false)
-
-  createdAt DateTime @default(now())
-
-  @@index([receiverId, isRead])
-  @@index([senderId, receiverId, createdAt])
-  @@map("message")
-}
-
-// ============================================
-// ÉQUIPES
-// ============================================
-
-model Team {
-  id          String  @id @default(cuid())
-  name        String
-  description String?
-  creatorId   String
-  creator     User    @relation(fields: [creatorId], references: [id], onDelete: Cascade)
-
-  totalCO2Saved Float @default(0)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  members          TeamMember[]
-  teamBattles      TeamBattle[]
-  rewardThresholds TeamRewardThreshold[]
-
-  @@map("team")
-}
-
-model TeamMember {
-  id     String @id @default(cuid())
-  teamId String
-  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  role   String @default("member") // member, admin
-  status String @default("pending") // pending, accepted, declined
-
-  joinedAt DateTime @default(now())
-
-  @@unique([teamId, userId])
-  @@map("team_member")
-}
-
-// Paliers de récompenses pour les équipes
-model TeamRewardThreshold {
-  id         String    @id @default(cuid())
-  teamId     String
-  team       Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  threshold  Float // Palier de kg CO2 économisés
-  cosmeticId String
-  cosmetic   Cosmetic  @relation("TeamRewards", fields: [cosmeticId], references: [id])
-  isUnlocked Boolean   @default(false)
-  unlockedAt DateTime?
-
-  createdAt DateTime @default(now())
-
-  @@unique([teamId, threshold])
-  @@index([teamId, isUnlocked])
-  @@map("team_reward_threshold")
-}
-
-// Batailles entre équipes
-model Battle {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  startDate   DateTime
-  endDate     DateTime
-  isActive    Boolean  @default(true)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  teamBattles TeamBattle[]
-
-  @@index([isActive, startDate, endDate])
-  @@map("battle")
-}
-
-// Association équipe-bataille (poule de compétition)
-model TeamBattle {
-  id       String @id @default(cuid())
-  battleId String
-  battle   Battle @relation(fields: [battleId], references: [id], onDelete: Cascade)
-  teamId   String
-  team     Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
-
-  co2SavedDuringBattle Float   @default(0) // CO2 économisé pendant la bataille
-  rank                 Int? // Classement dans la bataille
-  rewardEarned         String? // Récompense obtenue (JSON ou texte)
-
-  joinedAt DateTime @default(now())
-
-  @@unique([battleId, teamId])
-  @@index([battleId, co2SavedDuringBattle])
-  @@map("team_battle")
-}
-
-// ============================================
-// NOTIFICATIONS
-// ============================================
-
-model Notification {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  type    String // friend_request, challenge_completed, cosmetic_unlocked, team_invitation, etc.
-  title   String
-  message String
-  data    Json? // Données additionnelles
-
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  @@index([userId, isRead, createdAt])
-  @@map("notification")
-}
-
-// ============================================
-// ANALYTICS & ADMIN
-// ============================================
-
-model AppMetric {
-  id   String   @id @default(cuid())
-  date DateTime @default(now())
-
-  // KPIs
-  activeUsers          Int
-  avgFriendsPerUser    Float
-  avgChallengesPerUser Float
-  avgLoginFrequency    Float
-  totalCO2SavedGlobal  Float
-
-  createdAt DateTime @default(now())
-
-  @@index([date])
-  @@map("app_metric")
 }
