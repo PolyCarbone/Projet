@@ -3,6 +3,11 @@
 import { Book, Menu, Sunset, Trees, Zap, CircleUserRound, ChevronsUpDown, UsersRound, LogOut, SquareCheckBig, FlaskConical } from "lucide-react";
 import Link from "next/link";
 import { Logo } from "@/components/logo";
+import { useAuth } from "@/lib/auth-context";
+import { useUserProfile } from "@/lib/user-profile-context";
+import { UserAvatar } from "@/components/user-avatar";
+import { NotificationsDropdown } from "@/components/notifications-dropdown";
+import { authClient } from "@/lib/auth-client";
 
 import {
     Accordion,
@@ -26,9 +31,6 @@ import {
     SheetTitle,
     SheetTrigger,
 } from "@/components/ui/sheet";
-import { NavUser } from "@/components/nav-user";
-import { authClient } from "@/lib/auth-client";
-import { useEffect, useState } from "react";
 
 interface MenuItem {
     title: string;
@@ -76,27 +78,12 @@ const Navbar1 = ({
         signup: { title: "Sign up", url: "#" },
     },
 }: Navbar1Props) => {
-    const [session, setSession] = useState<any>(null);
-    const [isLoading, setIsLoading] = useState(true);
-
-    useEffect(() => {
-        const fetchSession = async () => {
-            try {
-                const { data } = await authClient.getSession();
-                setSession(data);
-            } catch (error) {
-                console.error("Failed to fetch session:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        fetchSession();
-    }, []);
+    const { session, isLoading } = useAuth();
+    const { profile } = useUserProfile();
 
     const handleLogoutSuccess = () => {
-        // Mettre à jour la session localement après la déconnexion
-        setSession(null);
+        // La session sera automatiquement mise à jour par le contexte
+        window.location.href = "/";
     };
 
     return (
@@ -124,13 +111,15 @@ const Navbar1 = ({
                         {!isLoading && (
                             session?.user ? (
                                 <>
-                                    <NavUser
-                                        user={{
-                                            name: session.user.name || "User",
-                                            email: session.user.email,
-                                            image: session.user.image,
-                                        }}
-                                        onLogoutSuccess={handleLogoutSuccess}
+                                    <NotificationsDropdown />
+                                    <UserAvatar
+                                        avatar={profile?.avatar}
+                                        avatarBorderColor={profile?.avatarBorderColor}
+                                        username={profile?.username || session.user.name || "User"}
+                                        userId={session.user.id}
+                                        size="md"
+                                        clickable={true}
+                                        isCurrentUser={true}
                                     />
                                     <Button
                                         variant="outline"
@@ -178,14 +167,18 @@ const Navbar1 = ({
                         {/* User avatar et menu à droite */}
                         <div className="flex items-center gap-2">
                             {!isLoading && session?.user && (
-                                <NavUser
-                                    user={{
-                                        name: session.user.name || "User",
-                                        email: session.user.email,
-                                        image: session.user.image,
-                                    }}
-                                    onLogoutSuccess={handleLogoutSuccess}
-                                />
+                                <>
+                                    <NotificationsDropdown />
+                                    <UserAvatar
+                                        avatar={profile?.avatar}
+                                        avatarBorderColor={profile?.avatarBorderColor}
+                                        username={profile?.username || session.user.name || "User"}
+                                        userId={session.user.id}
+                                        size="md"
+                                        clickable={true}
+                                        isCurrentUser={true}
+                                    />
+                                </>
                             )}
                             <Sheet>
                                 <SheetTrigger asChild>

@@ -19,11 +19,14 @@ export async function GET() {
         const user = await prisma.user.findUnique({
             where: { id: session.user.id },
             select: {
+                id: true,
+                name: true,
                 email: true,
                 emailVerified: true,
                 username: true,
+                createdAt: true,
+                updatedAt: true,
                 avatarId: true,
-                avatarBorderColor: true,
                 avatar: {
                     select: {
                         id: true,
@@ -31,10 +34,23 @@ export async function GET() {
                         imageUrl: true
                     }
                 },
-                onboardingStep: true,
-                carbonFootprint: {
-                    select: { id: true }
-                }
+                avatarBorderColor: true,
+                bannerId: true,
+                banner: {
+                    select: {
+                        id: true,
+                        name: true,
+                        imageUrl: true
+                    }
+                },
+                usernameColor: true,
+                darkMode: true,
+                totalCO2Saved: true,
+                currentStreak: true,
+                longestStreak: true,
+                lastActivityDate: true,
+                referralCode: true,
+                isAdmin: true,
             }
         });
 
@@ -45,17 +61,9 @@ export async function GET() {
             );
         }
 
-        return NextResponse.json({
-            email: user.email,
-            emailVerified: user.emailVerified,
-            username: user.username,
-            avatar: user.avatar,
-            avatarBorderColor: user.avatarBorderColor,
-            onboardingStep: user.onboardingStep,
-            hasCarbonFootprint: !!user.carbonFootprint,
-        });
+        return NextResponse.json(user);
     } catch (error) {
-        console.error("Error fetching onboarding status:", error);
+        console.error("Error fetching user profile:", error);
         return NextResponse.json(
             { error: "Erreur interne du serveur" },
             { status: 500 }

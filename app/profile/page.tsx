@@ -5,7 +5,8 @@ import { Navbar1 } from "@/components/home-navbar"
 import { ProfileHeader } from "@/components/profile-header"
 import { CarbonFootprintPieChart } from "@/components/carbon-footprint-pie-chart"
 import { CarbonFootprintBarChart } from "@/components/carbon-footprint-bar-chart"
-import { authClient } from "@/lib/auth-client"
+import { useAuth } from "@/lib/auth-context"
+import { useUserProfile } from "@/lib/user-profile-context"
 import { Skeleton } from "@/components/ui/skeleton"
 
 interface CarbonFootprintData {
@@ -18,38 +19,42 @@ interface CarbonFootprintData {
 }
 
 export default function ProfilePage() {
-    const [session, setSession] = useState<any>(null)
+    const { session, isLoading: isAuthLoading } = useAuth()
+    const { profile, isLoading: isProfileLoading } = useUserProfile()
     const [carbonFootprint, setCarbonFootprint] = useState<CarbonFootprintData | null>(null)
-    const [isLoading, setIsLoading] = useState(true)
+    const [isLoadingFootprint, setIsLoadingFootprint] = useState(true)
 
     useEffect(() => {
         const fetchData = async () => {
-            try {
-                const { data } = await authClient.getSession()
-                setSession(data)
+            if (!session?.user) {
+                setIsLoadingFootprint(false)
+                return
+            }
 
-                // Récupérer les données d'empreinte carbone si l'utilisateur est connecté
-                if (data?.user) {
-                    const response = await fetch("/api/carbon-footprint")
-                    if (response.ok) {
-                        const footprintData = await response.json()
-                        setCarbonFootprint(footprintData)
-                    }
+            try {
+                const footprintResponse = await fetch("/api/carbon-footprint")
+                if (footprintResponse.ok) {
+                    const footprintData = await footprintResponse.json()
+                    setCarbonFootprint(footprintData)
                 }
             } catch (error) {
                 console.error("Failed to fetch data:", error)
             } finally {
-                setIsLoading(false)
+                setIsLoadingFootprint(false)
             }
         }
 
-        fetchData()
-    }, [])
+        if (!isAuthLoading) {
+            fetchData()
+        }
+    }, [session, isAuthLoading])
 
     const handleUpdateName = async (newName: string) => {
         // TODO: Implement name update via API
         console.log("Update name to:", newName)
     }
+
+    const isLoading = isAuthLoading || isProfileLoading || isLoadingFootprint
 
     return (
         <div className="relative min-h-screen">
@@ -65,14 +70,8 @@ export default function ProfilePage() {
             <div className="fixed inset-0 -z-10 backdrop-blur-md dark:bg-black/30" />
 
             <div className="relative">
-                {/* Navbar with frosted glass effect */}
                 <div className="backdrop-blur-xl bg-white dark:bg-black border-b border-zinc-200/50 dark:border-zinc-800 shadow-lg dark:shadow-black/50">
-                    <Navbar1
-                        auth={{
-                            login: { title: "Connexion", url: "/auth/portal?mode=login" },
-                            signup: { title: "Inscription", url: "/auth/portal?mode=signup" },
-                        }}
-                    />
+                    <Navbar1 />
                 </div>
 
                 {/* Profile Content */}
@@ -85,16 +84,16 @@ export default function ProfilePage() {
                                 <Skeleton className="h-4 w-48" />
                             </div>
                         </div>
-                    ) : session?.user ? (
+                    ) : session?.user && profile ? (
                         <>
                             <ProfileHeader
                                 user={{
-                                    name: session.user.name || "Utilisateur",
-                                    email: session.user.email,
-                                    image: session.user.image,
-                                    createdAt: session.user.createdAt,
-                                    username: session.user.username || "utilisateur",
-                                    avatarColor: session.user.avatarColor,
+                                    name: profile.name,
+                                    email: profile.email,
+                                    username: profile.username || "utilisateur",
+                                    createdAt: profile.createdAt,
+                                    avatar: profile.avatar,
+                                    avatarBorderColor: profile.avatarBorderColor,
                                 }}
                                 isOwnProfile={true}
                                 onUpdateName={handleUpdateName}
@@ -113,6 +112,6 @@ export default function ProfilePage() {
                     )}
                 </div>
             </div>
-        </div>
+        </div >
     )
 }

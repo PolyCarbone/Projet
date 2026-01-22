@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Pencil, UserPlus, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { UserAvatar } from "@/components/user-avatar"
 
 interface ProfileHeaderProps {
     user: {
@@ -13,7 +13,12 @@ interface ProfileHeaderProps {
         image?: string | null
         createdAt?: Date | string
         username: string
-        avatarColor?: string | null
+        avatar?: {
+            id: string
+            name: string
+            imageUrl: string
+        } | null
+        avatarBorderColor?: string | null
     }
     isOwnProfile?: boolean
     onUpdateName?: (newName: string) => Promise<void>
@@ -62,12 +67,13 @@ export function ProfileHeader({ user, isOwnProfile = false, onUpdateName }: Prof
                 {/* Avatar - positioned to overlap banner */}
                 <div className="absolute left-1/2 -translate-x-1/2 -bottom-14">
                     <div className="relative">
-                        <div
-                            className="h-28 w-28 rounded-full border-4 border-background ring-2 ring-primary flex items-center justify-center text-white text-3xl font-bold"
-                            style={{ backgroundColor: user.avatarColor || "#2822c5ff" }}
-                        >
-                        </div>
-                        <div className="absolute bottom-1 right-1 h-5 w-5 rounded-full bg-green-500 border-2 border-background" />
+                        <UserAvatar
+                            avatar={user.avatar}
+                            avatarBorderColor={user.avatarBorderColor}
+                            username={user.username}
+                            size="xl"
+                            clickable={false}
+                        />
                     </div>
                 </div>
             </div>
