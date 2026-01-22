@@ -41,7 +41,7 @@ git --version     # Devrait afficher git version 2.x.x ou supérieur
 
 ### 1. Cloner le dépôt
 ```bash
-git clone <url-du-repository>
+git clone https://github.com/PolyCarbone/Projet
 cd polycarbone
 ```
 
