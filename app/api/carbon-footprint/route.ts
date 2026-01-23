@@ -25,7 +25,6 @@ export async function POST(request: NextRequest) {
             logement,
             divers,
             serviceSocietal,
-            rawData,
         } = body;
 
         // Valider que totalFootprint est présent
@@ -48,7 +47,6 @@ export async function POST(request: NextRequest) {
                 logement: logement ?? null,
                 divers: divers ?? null,
                 serviceSocietal: serviceSocietal ?? null,
-                rawData: rawData ?? null,
             },
             create: {
                 userId: session.user.id,
@@ -58,7 +56,6 @@ export async function POST(request: NextRequest) {
                 logement: logement ?? null,
                 divers: divers ?? null,
                 serviceSocietal: serviceSocietal ?? null,
-                rawData: rawData ?? null,
             },
         });
 

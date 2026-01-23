@@ -11,7 +11,7 @@ export default function LoginPage() {
                     <div className="flex flex-col items-center gap-1 font-medium">
                         <Logo className="size-18" width={60} height={60} radiusClass="rounded-full" />
                         <span className="text-lg text-gray-600" >PolyCarbone</span>
-                        <div  className="text-lg font-light text-gray-400 tracking-tighter text-center" >Rejoignez la communauté et réduisez votre empreinte carbone</div>
+                        <div className="text-lg font-light text-gray-400 tracking-tighter text-center" >Rejoignez la communauté et réduisez votre empreinte carbone</div>
                     </div>
                 </div>
                 <div className="flex items-start justify-center mt-6">
@@ -19,13 +19,6 @@ export default function LoginPage() {
                         <AuthForm defaultMode="login" />
                     </div>
                 </div>
-            </div>
-            <div className="bg-muted relative hidden lg:block">
-                <img
-                    src="/images/app-background.jpg"
-                    alt="Image"
-                    className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.65]"
-                />
             </div>
         </div>
     )
