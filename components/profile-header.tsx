@@ -58,12 +58,7 @@ export function ProfileHeader({ user, isOwnProfile = false, onUpdateName }: Prof
     return (
         <div className="pb-8 w-full">
             {/* Banner & Avatar Section */}
-            <div className="relative w-full">
-                {/* Banner */}
-                <div className="h-40 sm:h-48 md:h-56 w-full overflow-hidden">
-                    <div className="h-full w-full bg-gradient-to-r from-primary via-primary/80 to-primary" />
-                </div>
-
+            <div className="relative">
                 {/* Avatar - positioned to overlap banner */}
                 <div className="absolute left-1/2 -translate-x-1/2 -bottom-14">
                     <div className="relative">

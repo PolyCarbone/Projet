@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Navbar1 } from "@/components/home-navbar"
 import { ProfileHeader } from "@/components/profile-header"
 import { CarbonFootprintPieChart } from "@/components/carbon-footprint-pie-chart"
 import { CarbonFootprintBarChart } from "@/components/carbon-footprint-bar-chart"
@@ -58,21 +57,8 @@ export default function ProfilePage() {
 
     return (
         <div className="relative min-h-screen">
-            {/* Background Image */}
-            <div
-                className="fixed inset-0 -z-10 bg-cover bg-center bg-no-repeat brightness-75 dark:brightness-50"
-                style={{
-                    backgroundImage: "url('/images/app-background.jpg')",
-                }}
-            />
-
-            {/* Frosted Glass Overlay */}
-            <div className="fixed inset-0 -z-10 backdrop-blur-md dark:bg-black/30" />
 
             <div className="relative">
-                <div className="backdrop-blur-xl bg-white dark:bg-black border-b border-zinc-200/50 dark:border-zinc-800 shadow-lg dark:shadow-black/50">
-                    <Navbar1 />
-                </div>
 
                 {/* Profile Content */}
                 <div className="w-full">

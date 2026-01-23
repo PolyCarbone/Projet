@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Navbar1 } from "@/components/home-navbar";
 import { useAuth } from "@/lib/auth-context";
 import { useUserProfile } from "@/lib/user-profile-context";
 import { Button } from "@/components/ui/button";
@@ -148,20 +147,7 @@ export default function SocialPage() {
 
     return (
         <div className="relative min-h-screen">
-            {/* Background Image */}
-            <div
-                className="fixed inset-0 -z-10 bg-cover bg-center bg-no-repeat brightness-75 dark:brightness-50"
-                style={{
-                    backgroundImage: "url('/images/app-background.jpg')",
-                }}
-            />
-
-            {/* Frosted Glass Overlay */}
-            <div className="fixed inset-0 -z-10 backdrop-blur-md dark:bg-black/30" />
-
             <div className="relative">
-                <Navbar1 />
-
                 <div className="container mx-auto px-4 py-8">
                     <Tabs defaultValue="friends" className="w-full">
                         <TabsList className="grid w-full grid-cols-3 max-w-md mx-auto">
