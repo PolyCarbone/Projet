@@ -1,6 +1,5 @@
 "use client";
 
-import { Navbar1 } from "@/components/home-navbar";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Maximize2, Minimize2 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -174,27 +173,6 @@ export default function EvaluationPage() {
     // Interface normale avec navbar
     return (
         <div className="h-screen overflow-hidden flex flex-col">
-            {/* Background Image */}
-            <div
-                className="fixed inset-0 -z-10 bg-cover bg-center bg-no-repeat brightness-75 dark:brightness-50"
-                style={{
-                    backgroundImage: "url('/images/app-background.jpg')",
-                }}
-            />
-
-            {/* Frosted Glass Overlay */}
-            <div className="fixed inset-0 -z-10 backdrop-blur-md dark:bg-black/30" />
-
-            {/* Navbar with frosted glass effect */}
-            <div className="backdrop-blur-xl bg-white dark:bg-black border-b border-zinc-200/50 dark:border-zinc-800 shadow-lg dark:shadow-black/50">
-                <Navbar1
-                    auth={{
-                        login: { title: "Connexion", url: "/auth/portal?mode=login" },
-                        signup: { title: "Inscription", url: "/auth/portal?mode=signup" },
-                    }}
-                />
-            </div>
-
             {/* Contenu principal avec l'iframe Nos Gestes Climat */}
             <div className="flex-1 flex flex-col min-h-0">
                 <div className="container mx-auto px-4 py-4 flex items-center justify-between">

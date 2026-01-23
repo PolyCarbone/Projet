@@ -7,25 +7,21 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft, ArrowRight, Check, Loader2, LogOut, Mail } from "lucide-react"
-
-const AVATAR_COLORS = [
-    { name: "Vert", value: "#22c55e" },
-    { name: "Bleu", value: "#3b82f6" },
-    { name: "Violet", value: "#8b5cf6" },
-    { name: "Rose", value: "#ec4899" },
-    { name: "Orange", value: "#f97316" },
-    { name: "Rouge", value: "#ef4444" },
-    { name: "Jaune", value: "#eab308" },
-    { name: "Cyan", value: "#06b6d4" },
-]
+import Image from "next/image"
 
 type OnboardingStep = "email-verification" | "username" | "avatar" | "carbon-test"
+
+interface Avatar {
+    id: string
+    name: string
+    imageUrl: string
+}
 
 interface UserData {
     email: string
     emailVerified: boolean
     username: string | null
-    avatarColor: string | null
+    avatar: Avatar | null
     onboardingStep: number
     hasCarbonFootprint: boolean
 }
@@ -42,7 +38,9 @@ export default function OnboardingPage() {
     const [isCheckingUsername, setIsCheckingUsername] = useState(false)
 
     // Avatar state
-    const [selectedColor, setSelectedColor] = useState(AVATAR_COLORS[0].value)
+    const [availableAvatars, setAvailableAvatars] = useState<Avatar[]>([])
+    const [selectedAvatarId, setSelectedAvatarId] = useState<string | null>(null)
+    const [isLoadingAvatars, setIsLoadingAvatars] = useState(false)
 
     // Submission state
     const [isSubmitting, setIsSubmitting] = useState(false)
@@ -74,16 +72,38 @@ export default function OnboardingPage() {
             setCurrentStep("email-verification")
         } else if (!data.username) {
             setCurrentStep("username")
-        } else if (!data.avatarColor) {
+        } else if (!data.avatar) {
             setCurrentStep("avatar")
             setUsername(data.username)
+            fetchAvailableAvatars()
         } else if (!data.hasCarbonFootprint) {
             setCurrentStep("carbon-test")
             setUsername(data.username)
-            setSelectedColor(data.avatarColor)
+            setSelectedAvatarId(data.avatar.id)
         } else {
             // Onboarding completed, redirect to home
             router.push("/")
+        }
+    }
+
+    const fetchAvailableAvatars = async () => {
+        setIsLoadingAvatars(true)
+        try {
+            const response = await fetch("/api/onboarding/avatar")
+            if (response.ok) {
+                const data = await response.json()
+                setAvailableAvatars(data.avatars)
+                // Sélectionner le premier avatar par défaut
+                if (data.avatars.length > 0) {
+                    setSelectedAvatarId(data.avatars[0].id)
+                }
+            } else {
+                console.error("Failed to fetch avatars, status:", response.status)
+            }
+        } catch (error) {
+            console.error("Failed to fetch avatars:", error)
+        } finally {
+            setIsLoadingAvatars(false)
         }
     }
 
@@ -155,16 +175,20 @@ export default function OnboardingPage() {
     }
 
     const handleSubmitAvatar = async () => {
+        if (!selectedAvatarId) return
+
         setIsSubmitting(true)
         try {
             const response = await fetch("/api/onboarding/avatar", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ avatarColor: selectedColor }),
+                body: JSON.stringify({ avatarId: selectedAvatarId }),
             })
 
             if (response.ok) {
                 setCurrentStep("carbon-test")
+            } else {
+                console.error("Failed to save avatar")
             }
         } catch (error) {
             console.error("Error saving avatar:", error)
@@ -243,7 +267,7 @@ export default function OnboardingPage() {
                     <CardDescription className="text-center">
                         {currentStep === "email-verification" && "Cliquez sur le lien envoyé par email"}
                         {currentStep === "username" && "Ce pseudo sera visible par les autres utilisateurs"}
-                        {currentStep === "avatar" && "Choisissez une couleur pour votre profil"}
+                        {currentStep === "avatar" && "Choisissez un avatar pour vous représenter"}
                         {currentStep === "carbon-test" && "Dernière étape : faites votre premier bilan carbone"}
                     </CardDescription>
                 </CardHeader>
@@ -339,61 +363,93 @@ export default function OnboardingPage() {
                     {/* Avatar Step */}
                     {currentStep === "avatar" && (
                         <div className="space-y-4">
-                            {/* Preview */}
-                            <div className="flex justify-center">
-                                <div
-                                    className="w-24 h-24 rounded-full flex items-center justify-center text-white text-3xl font-bold"
-                                    style={{ backgroundColor: selectedColor }}
-                                >
-                                    {username.slice(0, 2).toUpperCase()}
+                            {isLoadingAvatars ? (
+                                <div className="flex justify-center py-8">
+                                    <Loader2 className="h-8 w-8 animate-spin" />
                                 </div>
-                            </div>
+                            ) : availableAvatars.length === 0 ? (
+                                <div className="text-center py-8">
+                                    <p className="text-muted-foreground">Aucun avatar disponible</p>
+                                    <Button variant="outline" onClick={fetchAvailableAvatars} className="mt-4">
+                                        Réessayer
+                                    </Button>
+                                </div>
+                            ) : (
+                                <>
+                                    {/* Preview */}
+                                    <div className="flex justify-center">
+                                        {selectedAvatarId && (
+                                            <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-200">
+                                                <Image
+                                                    src={availableAvatars.find(a => a.id === selectedAvatarId)?.imageUrl || ''}
+                                                    alt="Avatar sélectionné"
+                                                    width={128}
+                                                    height={128}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
 
-                            {/* Color picker */}
-                            <div className="grid grid-cols-4 gap-3">
-                                {AVATAR_COLORS.map((color) => (
-                                    <button
-                                        key={color.value}
-                                        onClick={() => setSelectedColor(color.value)}
-                                        className={`w-12 h-12 rounded-full mx-auto transition-transform ${selectedColor === color.value
-                                            ? "ring-4 ring-offset-2 ring-gray-400 scale-110"
-                                            : "hover:scale-105"
-                                            }`}
-                                        style={{ backgroundColor: color.value }}
-                                        title={color.name}
-                                    />
-                                ))}
-                            </div>
+                                    {/* Avatar picker */}
+                                    <div className="grid grid-cols-3 gap-4">
+                                        {availableAvatars.map((avatar) => (
+                                            <button
+                                                key={avatar.id}
+                                                onClick={() => setSelectedAvatarId(avatar.id)}
+                                                className={`relative aspect-square rounded-full overflow-hidden transition-transform ${selectedAvatarId === avatar.id
+                                                    ? "ring-4 ring-offset-2 ring-green-500 scale-105"
+                                                    : "hover:scale-105 ring-2 ring-gray-200"
+                                                    }`}
+                                                title={avatar.name}
+                                            >
+                                                <Image
+                                                    src={avatar.imageUrl}
+                                                    alt={avatar.name}
+                                                    width={100}
+                                                    height={100}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </button>
+                                        ))}
+                                    </div>
 
-                            <div className="flex gap-2">
-                                <Button variant="outline" onClick={goBack} className="flex-1">
-                                    <ArrowLeft className="h-4 w-4 mr-2" />
-                                    Retour
-                                </Button>
-                                <Button
-                                    onClick={handleSubmitAvatar}
-                                    disabled={isSubmitting}
-                                    className="flex-1"
-                                >
-                                    {isSubmitting ? (
-                                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                                    ) : null}
-                                    Continuer
-                                    <ArrowRight className="h-4 w-4 ml-2" />
-                                </Button>
-                            </div>
+                                    <div className="flex gap-2">
+                                        <Button variant="outline" onClick={goBack} className="flex-1">
+                                            <ArrowLeft className="h-4 w-4 mr-2" />
+                                            Retour
+                                        </Button>
+                                        <Button
+                                            onClick={handleSubmitAvatar}
+                                            disabled={isSubmitting || !selectedAvatarId}
+                                            className="flex-1"
+                                        >
+                                            {isSubmitting ? (
+                                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                            ) : null}
+                                            Continuer
+                                            <ArrowRight className="h-4 w-4 ml-2" />
+                                        </Button>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     )}
 
                     {/* Carbon Test Step */}
                     {currentStep === "carbon-test" && (
                         <div className="space-y-4 text-center">
-                            <div
-                                className="w-20 h-20 rounded-full mx-auto flex items-center justify-center text-white text-2xl font-bold"
-                                style={{ backgroundColor: selectedColor }}
-                            >
-                                {username.slice(0, 2).toUpperCase()}
-                            </div>
+                            {selectedAvatarId && userData?.avatar && (
+                                <div className="w-24 h-24 rounded-full mx-auto overflow-hidden border-4 border-gray-200">
+                                    <Image
+                                        src={userData.avatar.imageUrl}
+                                        alt="Votre avatar"
+                                        width={96}
+                                        height={96}
+                                        className="w-full h-full object-cover"
+                                    />
+                                </div>
+                            )}
                             <p className="text-sm text-muted-foreground">
                                 Bienvenue <strong>@{username}</strong> !<br />
                                 Pour terminer, calculez votre empreinte carbone avec le simulateur Nos Gestes Climat.
