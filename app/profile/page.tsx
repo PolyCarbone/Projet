@@ -1,9 +1,11 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { ProfileHeader } from "@/components/profile-header"
+import { ProfileHeaderCard } from "@/components/profile-header-card"
 import { CarbonFootprintPieChart } from "@/components/carbon-footprint-pie-chart"
 import { CarbonFootprintBarChart } from "@/components/carbon-footprint-bar-chart"
+import { CarbonSavingsLineChart } from "@/components/carbon-savings-line-chart"
+import { UserStatsCards } from "@/components/user-stats-cards"
 import { useAuth } from "@/lib/auth-context"
 import { useUserProfile } from "@/lib/user-profile-context"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -17,11 +19,26 @@ interface CarbonFootprintData {
     totalFootprint?: number
 }
 
+interface CarbonSavingsData {
+    date: string
+    cumulativeCO2Saved: number
+}
+
+interface UserStats {
+    completedChallenges: number
+    currentStreak: number
+    friendsCount: number
+}
+
 export default function ProfilePage() {
     const { session, isLoading: isAuthLoading } = useAuth()
     const { profile, isLoading: isProfileLoading } = useUserProfile()
     const [carbonFootprint, setCarbonFootprint] = useState<CarbonFootprintData | null>(null)
+    const [carbonSavingsTimeline, setCarbonSavingsTimeline] = useState<CarbonSavingsData[] | null>(null)
+    const [userStats, setUserStats] = useState<UserStats | null>(null)
     const [isLoadingFootprint, setIsLoadingFootprint] = useState(true)
+    const [isLoadingTimeline, setIsLoadingTimeline] = useState(true)
+    const [isLoadingStats, setIsLoadingStats] = useState(true)
 
     useEffect(() => {
         const fetchData = async () => {
@@ -31,15 +48,32 @@ export default function ProfilePage() {
             }
 
             try {
-                const footprintResponse = await fetch("/api/carbon-footprint")
+                const [footprintResponse, timelineResponse, statsResponse] = await Promise.all([
+                    fetch("/api/carbon-footprint"),
+                    fetch("/api/carbon-savings-timeline"),
+                    fetch("/api/user-stats")
+                ])
+
                 if (footprintResponse.ok) {
                     const footprintData = await footprintResponse.json()
                     setCarbonFootprint(footprintData)
+                }
+
+                if (timelineResponse.ok) {
+                    const timelineData = await timelineResponse.json()
+                    setCarbonSavingsTimeline(timelineData)
+                }
+
+                if (statsResponse.ok) {
+                    const statsData = await statsResponse.json()
+                    setUserStats(statsData)
                 }
             } catch (error) {
                 console.error("Failed to fetch data:", error)
             } finally {
                 setIsLoadingFootprint(false)
+                setIsLoadingTimeline(false)
+                setIsLoadingStats(false)
             }
         }
 
@@ -48,12 +82,22 @@ export default function ProfilePage() {
         }
     }, [session, isAuthLoading])
 
-    const handleUpdateName = async (newName: string) => {
-        // TODO: Implement name update via API
-        console.log("Update name to:", newName)
+    const handleEditEmail = () => {
+        // TODO: Implement email edit
+        console.log("Edit email")
     }
 
-    const isLoading = isAuthLoading || isProfileLoading || isLoadingFootprint
+    const handleEditPassword = () => {
+        // TODO: Implement password edit
+        console.log("Edit password")
+    }
+
+    const handleEditUsername = () => {
+        // TODO: Implement username edit
+        console.log("Edit username")
+    }
+
+    const isLoading = isAuthLoading || isProfileLoading || isLoadingFootprint || isLoadingTimeline || isLoadingStats
 
     return (
         <div className="relative min-h-screen">
@@ -72,18 +116,34 @@ export default function ProfilePage() {
                         </div>
                     ) : session?.user && profile ? (
                         <>
-                            <ProfileHeader
-                                user={{
-                                    name: profile.name,
-                                    email: profile.email,
-                                    username: profile.username || "utilisateur",
-                                    createdAt: profile.createdAt,
-                                    avatar: profile.avatar,
-                                    avatarBorderColor: profile.avatarBorderColor,
-                                }}
-                                isOwnProfile={true}
-                                onUpdateName={handleUpdateName}
-                            />
+                            <div className="px-4 pt-8 pb-4 max-w-7xl mx-auto">
+                                <ProfileHeaderCard
+                                    user={{
+                                        username: profile.username || "utilisateur",
+                                        email: profile.email,
+                                        createdAt: profile.createdAt,
+                                        avatar: profile.avatar,
+                                        avatarBorderColor: profile.avatarBorderColor,
+                                        userId: session.user.id,
+                                    }}
+                                    isCurrentUser={true}
+                                    onEditEmail={handleEditEmail}
+                                    onEditPassword={handleEditPassword}
+                                    onEditUsername={handleEditUsername}
+                                />
+                            </div>
+                            <div className="px-4 pb-4 max-w-7xl mx-auto">
+                                <CarbonSavingsLineChart
+                                    data={carbonSavingsTimeline}
+                                    isLoading={isLoadingTimeline}
+                                />
+                            </div>
+                            <div className="px-4 pb-4 max-w-7xl mx-auto">
+                                <UserStatsCards
+                                    stats={userStats}
+                                    isLoading={isLoadingStats}
+                                />
+                            </div>
                             <div className="px-4 pb-8 max-w-7xl mx-auto">
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                     <CarbonFootprintPieChart data={carbonFootprint} />
