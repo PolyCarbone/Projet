@@ -17,6 +17,7 @@ interface UserAvatarProps {
     clickable?: boolean
     isCurrentUser?: boolean
     className?: string
+    priority?: boolean
 }
 
 const sizeMap = {
@@ -25,6 +26,14 @@ const sizeMap = {
     md: "h-10 w-10",
     lg: "h-16 w-16",
     xl: "h-28 w-28",
+}
+
+const sizePixelMap = {
+    xs: "24px",
+    sm: "32px",
+    md: "40px",
+    lg: "64px",
+    xl: "112px",
 }
 
 const borderWidthMap = {
@@ -44,6 +53,7 @@ export function UserAvatar({
     clickable = false,
     isCurrentUser = false,
     className,
+    priority = false,
 }: UserAvatarProps) {
     const sizeClasses = sizeMap[size]
     const borderWidth = borderWidthMap[size]
@@ -83,7 +93,10 @@ export function UserAvatar({
                     src={avatar.imageUrl}
                     alt={username || "Avatar"}
                     fill
+                    sizes={sizePixelMap[size]}
                     className="object-cover"
+                    priority={priority}
+                    loading={priority ? "eager" : "lazy"}
                 />
             ) : (
                 <span className="text-muted-foreground font-semibold">
