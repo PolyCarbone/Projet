@@ -168,6 +168,11 @@ const TopNavbar = () => {
                                     />
                                 </>
                             )}
+                            {!isLoading && !session?.user && (
+                                <Button asChild>
+                                    <Link href={auth.login.url}>{auth.login.title}</Link>
+                                </Button>
+                            )}
                             <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
                                 <SheetTrigger asChild>
                                     <Button variant="ghost" size="icon" className="relative hover:bg-white text-white">
@@ -221,7 +226,7 @@ const TopNavbar = () => {
                                                         <Button asChild variant="outline">
                                                             <Link href={auth.login.url} onClick={() => setIsSheetOpen(false)}>{auth.login.title}</Link>
                                                         </Button>
-                                                        <Button asChild>
+                                                        <Button asChild >
                                                             <Link href={auth.signup.url} onClick={() => setIsSheetOpen(false)}>{auth.signup.title}</Link>
                                                         </Button>
                                                     </div>
