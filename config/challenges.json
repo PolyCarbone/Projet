@@ -1,0 +1,212 @@
+{
+    "$schema": "./challenges-schema.json",
+    "challenges": [
+        {
+            "id": "daily-bike-commute",
+            "title": "Privilégier le vélo pour vos trajets",
+            "description": "Utilisez le vélo plutôt que la voiture pour vos déplacements quotidiens",
+            "category": "transport",
+            "type": "daily",
+            "co2Impact": 2.5,
+            "isActive": true
+        },
+        {
+            "id": "daily-public-transport",
+            "title": "Utiliser les transports en commun",
+            "description": "Prenez les transports en commun au lieu de votre voiture personnelle",
+            "category": "transport",
+            "type": "daily",
+            "co2Impact": 1.8,
+            "isActive": true
+        },
+        {
+            "id": "daily-carpool",
+            "title": "Faire du covoiturage",
+            "description": "Partagez votre trajet avec d'autres personnes",
+            "category": "transport",
+            "type": "daily",
+            "co2Impact": 1.2,
+            "isActive": true
+        },
+        {
+            "id": "daily-vegetarian-meal",
+            "title": "Repas végétarien",
+            "description": "Prenez au moins un repas végétarien aujourd'hui",
+            "category": "alimentation",
+            "type": "daily",
+            "co2Impact": 1.5,
+            "isActive": true
+        },
+        {
+            "id": "daily-local-food",
+            "title": "Acheter local",
+            "description": "Privilégiez les produits locaux et de saison",
+            "category": "alimentation",
+            "type": "daily",
+            "co2Impact": 0.8,
+            "isActive": true
+        },
+        {
+            "id": "daily-no-food-waste",
+            "title": "Zéro gaspillage alimentaire",
+            "description": "Ne jetez aucun aliment aujourd'hui",
+            "category": "alimentation",
+            "type": "daily",
+            "co2Impact": 0.6,
+            "isActive": true
+        },
+        {
+            "id": "daily-temperature-reduction",
+            "title": "Réduire le chauffage",
+            "description": "Baissez votre chauffage d'un degré",
+            "category": "logement",
+            "type": "daily",
+            "co2Impact": 1.0,
+            "isActive": true
+        },
+        {
+            "id": "daily-short-shower",
+            "title": "Douche courte",
+            "description": "Limitez votre douche à 5 minutes maximum",
+            "category": "logement",
+            "type": "daily",
+            "co2Impact": 0.4,
+            "isActive": true
+        },
+        {
+            "id": "daily-unplug-devices",
+            "title": "Débrancher les appareils",
+            "description": "Débranchez les appareils électriques non utilisés",
+            "category": "logement",
+            "type": "daily",
+            "co2Impact": 0.3,
+            "isActive": true
+        },
+        {
+            "id": "daily-no-new-purchase",
+            "title": "Journée sans achat",
+            "description": "Ne faites aucun achat neuf aujourd'hui",
+            "category": "divers",
+            "type": "daily",
+            "co2Impact": 2.0,
+            "isActive": true
+        },
+        {
+            "id": "daily-digital-cleanup",
+            "title": "Nettoyage numérique",
+            "description": "Supprimez des emails et fichiers inutiles",
+            "category": "divers",
+            "type": "daily",
+            "co2Impact": 0.2,
+            "isActive": true
+        },
+        {
+            "id": "daily-reusable-bags",
+            "title": "Sacs réutilisables",
+            "description": "Utilisez uniquement des sacs réutilisables pour vos courses",
+            "category": "divers",
+            "type": "daily",
+            "co2Impact": 0.1,
+            "isActive": true
+        },
+        {
+            "id": "annual-solar-panels",
+            "title": "Installer des panneaux solaires",
+            "description": "Installez des panneaux solaires sur votre toit",
+            "category": "logement",
+            "type": "annual",
+            "co2Impact": 1500.0,
+            "isActive": true
+        },
+        {
+            "id": "annual-insulation",
+            "title": "Améliorer l'isolation",
+            "description": "Renforcez l'isolation de votre logement",
+            "category": "logement",
+            "type": "annual",
+            "co2Impact": 800.0,
+            "isActive": true
+        },
+        {
+            "id": "annual-heat-pump",
+            "title": "Installer une pompe à chaleur",
+            "description": "Remplacez votre chaudière par une pompe à chaleur",
+            "category": "logement",
+            "type": "annual",
+            "co2Impact": 1200.0,
+            "isActive": true
+        },
+        {
+            "id": "annual-electric-car",
+            "title": "Passer à l'électrique",
+            "description": "Achetez un véhicule électrique ou hybride",
+            "category": "transport",
+            "type": "annual",
+            "co2Impact": 2000.0,
+            "isActive": true
+        },
+        {
+            "id": "annual-no-plane",
+            "title": "Année sans avion",
+            "description": "Ne prenez pas l'avion pendant un an",
+            "category": "transport",
+            "type": "annual",
+            "co2Impact": 1000.0,
+            "isActive": true
+        },
+        {
+            "id": "annual-bike-purchase",
+            "title": "Acheter un vélo",
+            "description": "Investissez dans un vélo pour vos déplacements quotidiens",
+            "category": "transport",
+            "type": "annual",
+            "co2Impact": 500.0,
+            "isActive": true
+        },
+        {
+            "id": "annual-vegan",
+            "title": "Devenir végétalien",
+            "description": "Adoptez une alimentation 100% végétale pendant un an",
+            "category": "alimentation",
+            "type": "annual",
+            "co2Impact": 900.0,
+            "isActive": true
+        },
+        {
+            "id": "annual-vegetarian",
+            "title": "Devenir végétarien",
+            "description": "Adoptez une alimentation végétarienne pendant un an",
+            "category": "alimentation",
+            "type": "annual",
+            "co2Impact": 600.0,
+            "isActive": true
+        },
+        {
+            "id": "annual-composting",
+            "title": "Installer un composteur",
+            "description": "Mettez en place un système de compostage",
+            "category": "alimentation",
+            "type": "annual",
+            "co2Impact": 200.0,
+            "isActive": true
+        },
+        {
+            "id": "annual-second-hand-only",
+            "title": "Consommer uniquement d'occasion",
+            "description": "Achetez uniquement des produits d'occasion pendant un an",
+            "category": "divers",
+            "type": "annual",
+            "co2Impact": 700.0,
+            "isActive": true
+        },
+        {
+            "id": "annual-minimalism",
+            "title": "Adopter le minimalisme",
+            "description": "Réduisez drastiquement vos possessions et achats",
+            "category": "divers",
+            "type": "annual",
+            "co2Impact": 500.0,
+            "isActive": true
+        }
+    ]
+}

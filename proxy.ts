@@ -9,7 +9,7 @@ const AUTH_ROUTES = ["/auth/portal", "/auth/forgot-password", "/auth/reset-passw
 const ONBOARDING_ROUTES = ["/onboarding"];
 
 // Routes protégées (accès uniquement si connecté ET onboarding terminé)
-const PROTECTED_ROUTES = ["/profile", "/social", "/challenges", "/evaluation", "/onboarding"];
+const PROTECTED_ROUTES = ["/profile", "/social", "/challenges", "/evaluation"];
 
 
 export async function proxy(request: NextRequest) {
@@ -41,18 +41,9 @@ export async function proxy(request: NextRequest) {
     if (isAuthenticated) {
         const onboardingStep = session?.user?.onboardingStep || 0;
 
-        // Permettre l'accès à /evaluation pendant l'onboarding
-        if (pathname.startsWith("/evaluation")) {
-            return NextResponse.next();
-        }
-
         // Si l'onboarding n'est pas terminé (step < 4)
         if (onboardingStep < 4) {
-            // Si au step 3, rediriger vers /evaluation pour faire le test carbone
-            if (onboardingStep === 3 && !pathname.startsWith("/evaluation") && !pathname.startsWith("/onboarding")) {
-                return NextResponse.redirect(new URL("/evaluation?onboarding=true", request.url));
-            }
-            // Pour les autres steps, rediriger vers /onboarding
+            // Rediriger vers /onboarding pour tous les steps
             if (!pathname.startsWith("/onboarding")) {
                 return NextResponse.redirect(new URL("/onboarding", request.url));
             }

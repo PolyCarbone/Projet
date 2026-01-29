@@ -1,0 +1,109 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Events Configuration",
+    "description": "Configuration des événements pour l'application PolyCarbone",
+    "type": "object",
+    "required": [
+        "events"
+    ],
+    "properties": {
+        "events": {
+            "type": "array",
+            "description": "Liste des événements avec leurs défis associés",
+            "items": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "name",
+                    "description",
+                    "startDate",
+                    "endDate",
+                    "isActive",
+                    "challenges"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "Identifiant unique de l'événement (kebab-case recommandé)",
+                        "pattern": "^[a-z0-9-]+$"
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "Nom de l'événement",
+                        "minLength": 3,
+                        "maxLength": 100
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Description de l'événement",
+                        "minLength": 10,
+                        "maxLength": 500
+                    },
+                    "startDate": {
+                        "type": "string",
+                        "description": "Date de début de l'événement (format ISO 8601)",
+                        "format": "date-time"
+                    },
+                    "endDate": {
+                        "type": "string",
+                        "description": "Date de fin de l'événement (format ISO 8601)",
+                        "format": "date-time"
+                    },
+                    "isActive": {
+                        "type": "boolean",
+                        "description": "Indique si l'événement est actif"
+                    },
+                    "challenges": {
+                        "type": "array",
+                        "description": "Liste des défis spécifiques à cet événement",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "id",
+                                "title",
+                                "description",
+                                "category",
+                                "co2Impact"
+                            ],
+                            "properties": {
+                                "id": {
+                                    "type": "string",
+                                    "description": "Identifiant unique du défi (kebab-case recommandé)",
+                                    "pattern": "^[a-z0-9-]+$"
+                                },
+                                "title": {
+                                    "type": "string",
+                                    "description": "Titre du défi",
+                                    "minLength": 3,
+                                    "maxLength": 100
+                                },
+                                "description": {
+                                    "type": "string",
+                                    "description": "Description détaillée du défi",
+                                    "minLength": 10,
+                                    "maxLength": 500
+                                },
+                                "category": {
+                                    "type": "string",
+                                    "description": "Catégorie du défi",
+                                    "enum": [
+                                        "transport",
+                                        "alimentation",
+                                        "logement",
+                                        "divers",
+                                        "serviceSocietal"
+                                    ]
+                                },
+                                "co2Impact": {
+                                    "type": "number",
+                                    "description": "Impact carbone potentiel en kg CO2e",
+                                    "minimum": 0
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
