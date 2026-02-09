@@ -10,7 +10,7 @@ interface LogoProps {
 export function Logo({ className = "size-4", width = 16, height = 16, radiusClass = "rounded-sm" }: LogoProps) {
     return (
         <Image
-            src="/images/LogoPolycarbone.png"
+            src="/images/LogoPolycarbone.svg"
             alt="PolyCarbone Logo"
             width={width}
             height={height}
