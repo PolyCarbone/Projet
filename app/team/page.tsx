@@ -15,10 +15,10 @@ interface TeamMember {
     name: string
     username: string
     avatarId: string | null
-    avatar: {
+    avatar?: {
         id: string
         name: string
-        imageUrl: string | null
+        imageUrl: string
     } | null
     avatarBorderColor: string | null
     totalCO2Saved: number

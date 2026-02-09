@@ -31,6 +31,11 @@ export function BottomNavbar({ children }: BottomNavProps) {
             label: "Social",
             icon: Users,
         },
+        {
+            href: "/team",
+            label: "Équipe",
+            icon: Users,
+        },
     ]
 
     return (
@@ -42,7 +47,7 @@ export function BottomNavbar({ children }: BottomNavProps) {
 
             {/* Bottom navigation - only visible on mobile */}
             <nav className="fixed bottom-0 left-0 right-0 border-t bg-background md:hidden z-50">
-                <div className="grid grid-cols-4 h-16">
+                <div className="grid grid-cols-5 h-16">
                     {navItems.map((item) => {
                         const Icon = item.icon
                         const isActive = pathname === item.href
@@ -78,7 +83,7 @@ export function BottomNavbar({ children }: BottomNavProps) {
                     {/* Profile with UserAvatar */}
                     <Link
                         href="/profile"
-                        className="flex flex-col items-center justify-center gap-1"
+                        className="flex flex-col items-center justify-center gap-0"
                     >
                         <UserAvatar
                             avatar={profile?.avatar}
