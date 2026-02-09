@@ -14,6 +14,9 @@ const transporter = nodemailer.createTransport({
         user: process.env.BREVO_SMTP_USER,
         pass: process.env.BREVO_SMTP_KEY,
     },
+    tls: {
+        rejectUnauthorized: false,
+    },
 });
 
 // Fonction utilitaire pour envoyer des emails
