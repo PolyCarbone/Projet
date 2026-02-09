@@ -1,0 +1,75 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Challenges Configuration",
+    "description": "Configuration des défis pour l'application PolyCarbone",
+    "type": "object",
+    "required": [
+        "challenges"
+    ],
+    "properties": {
+        "challenges": {
+            "type": "array",
+            "description": "Liste des défis disponibles dans l'application",
+            "items": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "title",
+                    "description",
+                    "category",
+                    "type",
+                    "co2Impact",
+                    "isActive"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "Identifiant unique du défi (kebab-case recommandé)",
+                        "pattern": "^[a-z0-9-]+$"
+                    },
+                    "title": {
+                        "type": "string",
+                        "description": "Titre du défi",
+                        "minLength": 3,
+                        "maxLength": 100
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Description détaillée du défi",
+                        "minLength": 10,
+                        "maxLength": 500
+                    },
+                    "category": {
+                        "type": "string",
+                        "description": "Catégorie du défi",
+                        "enum": [
+                            "transport",
+                            "alimentation",
+                            "logement",
+                            "divers",
+                            "serviceSocietal"
+                        ]
+                    },
+                    "type": {
+                        "type": "string",
+                        "description": "Type de défi (daily pour quotidien, annual pour annuel, event pour événementiel)",
+                        "enum": [
+                            "daily",
+                            "annual",
+                            "event"
+                        ]
+                    },
+                    "co2Impact": {
+                        "type": "number",
+                        "description": "Impact carbone potentiel en kg CO2e",
+                        "minimum": 0
+                    },
+                    "isActive": {
+                        "type": "boolean",
+                        "description": "Indique si le défi est actif et peut être proposé aux utilisateurs"
+                    }
+                }
+            }
+        }
+    }
+}

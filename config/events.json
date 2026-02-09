@@ -1,0 +1,160 @@
+{
+    "$schema": "./events-schema.json",
+    "events": [
+        {
+            "id": "earth-day-2026",
+            "name": "Journée de la Terre 2026",
+            "description": "Célébrons la Journée de la Terre avec des défis spéciaux pour protéger notre planète",
+            "startDate": "2026-04-22T00:00:00.000Z",
+            "endDate": "2026-04-22T23:59:59.999Z",
+            "isActive": true,
+            "challenges": [
+                {
+                    "id": "earth-day-tree-planting",
+                    "title": "Planter un arbre",
+                    "description": "Plantez un arbre pour célébrer la Journée de la Terre",
+                    "category": "serviceSocietal",
+                    "co2Impact": 20.0
+                },
+                {
+                    "id": "earth-day-cleanup",
+                    "title": "Nettoyage de la nature",
+                    "description": "Participez à un nettoyage de la nature près de chez vous",
+                    "category": "serviceSocietal",
+                    "co2Impact": 5.0
+                },
+                {
+                    "id": "earth-day-zero-waste",
+                    "title": "Journée zéro déchet",
+                    "description": "Ne produisez aucun déchet aujourd'hui",
+                    "category": "divers",
+                    "co2Impact": 3.0
+                }
+            ]
+        },
+        {
+            "id": "world-environment-day-2026",
+            "name": "Journée mondiale de l'environnement 2026",
+            "description": "Engageons-nous pour l'environnement avec des actions concrètes",
+            "startDate": "2026-06-05T00:00:00.000Z",
+            "endDate": "2026-06-05T23:59:59.999Z",
+            "isActive": true,
+            "challenges": [
+                {
+                    "id": "environment-day-plastic-free",
+                    "title": "Journée sans plastique",
+                    "description": "N'utilisez aucun plastique aujourd'hui",
+                    "category": "divers",
+                    "co2Impact": 2.5
+                },
+                {
+                    "id": "environment-day-bike-only",
+                    "title": "Vélo uniquement",
+                    "description": "Utilisez uniquement le vélo pour tous vos déplacements",
+                    "category": "transport",
+                    "co2Impact": 5.0
+                },
+                {
+                    "id": "environment-day-local-shop",
+                    "title": "Achats locaux",
+                    "description": "Faites tous vos achats dans un rayon de 5km",
+                    "category": "alimentation",
+                    "co2Impact": 3.0
+                }
+            ]
+        },
+        {
+            "id": "car-free-day-2026",
+            "name": "Journée sans voiture 2026",
+            "description": "Laissez votre voiture au garage et découvrez d'autres modes de transport",
+            "startDate": "2026-09-22T00:00:00.000Z",
+            "endDate": "2026-09-22T23:59:59.999Z",
+            "isActive": true,
+            "challenges": [
+                {
+                    "id": "car-free-walk",
+                    "title": "Marcher partout",
+                    "description": "Faites tous vos trajets à pied aujourd'hui",
+                    "category": "transport",
+                    "co2Impact": 8.0
+                },
+                {
+                    "id": "car-free-bike",
+                    "title": "Vélo toute la journée",
+                    "description": "Utilisez uniquement le vélo pour vos déplacements",
+                    "category": "transport",
+                    "co2Impact": 6.0
+                },
+                {
+                    "id": "car-free-public",
+                    "title": "Transports en commun",
+                    "description": "Découvrez tous les transports en commun de votre ville",
+                    "category": "transport",
+                    "co2Impact": 4.0
+                }
+            ]
+        },
+        {
+            "id": "climate-week-2026",
+            "name": "Semaine du climat 2026",
+            "description": "Une semaine d'actions pour lutter contre le changement climatique",
+            "startDate": "2026-09-20T00:00:00.000Z",
+            "endDate": "2026-09-27T23:59:59.999Z",
+            "isActive": true,
+            "challenges": [
+                {
+                    "id": "climate-week-energy-audit",
+                    "title": "Audit énergétique",
+                    "description": "Réalisez un audit énergétique de votre logement",
+                    "category": "logement",
+                    "co2Impact": 10.0
+                },
+                {
+                    "id": "climate-week-vegan-week",
+                    "title": "Semaine végane",
+                    "description": "Adoptez une alimentation végane pendant toute la semaine",
+                    "category": "alimentation",
+                    "co2Impact": 25.0
+                },
+                {
+                    "id": "climate-week-digital-detox",
+                    "title": "Détox digitale",
+                    "description": "Limitez votre utilisation du numérique au strict minimum",
+                    "category": "divers",
+                    "co2Impact": 5.0
+                }
+            ]
+        },
+        {
+            "id": "christmas-challenge-2026",
+            "name": "Noël éco-responsable 2026",
+            "description": "Célébrez Noël de manière écologique et responsable",
+            "startDate": "2026-12-20T00:00:00.000Z",
+            "endDate": "2026-12-27T23:59:59.999Z",
+            "isActive": true,
+            "challenges": [
+                {
+                    "id": "christmas-second-hand-gifts",
+                    "title": "Cadeaux d'occasion",
+                    "description": "Offrez uniquement des cadeaux d'occasion ou faits maison",
+                    "category": "divers",
+                    "co2Impact": 15.0
+                },
+                {
+                    "id": "christmas-local-food",
+                    "title": "Repas local",
+                    "description": "Préparez un repas de Noël 100% local et de saison",
+                    "category": "alimentation",
+                    "co2Impact": 8.0
+                },
+                {
+                    "id": "christmas-no-decoration-waste",
+                    "title": "Décorations recyclées",
+                    "description": "Utilisez uniquement des décorations réutilisées ou naturelles",
+                    "category": "divers",
+                    "co2Impact": 3.0
+                }
+            ]
+        }
+    ]
+}

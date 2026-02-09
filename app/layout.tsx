@@ -4,8 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/lib/auth-context";
 import { UserProfileProvider } from "@/lib/user-profile-context";
-import { BottomNavbar } from "@/components/bottom-navbar";
-import { TopNavbar } from "@/components/top-navbar";
+import { ConditionalLayout } from "@/components/conditional-layout";
 import { Toaster } from "sonner";
 
 const geistSans = Geist({
@@ -41,10 +40,9 @@ export default function RootLayout({
         >
           <AuthProvider>
             <UserProfileProvider>
-              <TopNavbar />
-              <BottomNavbar>
+              <ConditionalLayout>
                 {children}
-              </BottomNavbar>
+              </ConditionalLayout>
             </UserProfileProvider>
           </AuthProvider>
           <Toaster richColors position="top-right" />
