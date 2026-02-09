@@ -70,7 +70,10 @@ npx prisma migrate dev --name init
 # Vérifier que le client est bien généré
 npx prisma generate
 ```
-
+```bash
+#Ajoute les avatars en base de données
+npm run db:seed
+```
 ### 5. Lancer l'application
 ```bash
 npm run dev
