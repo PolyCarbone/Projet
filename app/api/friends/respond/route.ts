@@ -51,12 +51,18 @@ export async function POST(req: NextRequest) {
 
         // Si acceptée, créer une notification pour l'initiateur
         if (action === "accept") {
+            // Récupérer le username de l'utilisateur actuel
+            const currentUser = await prisma.user.findUnique({
+                where: { id: session.user.id },
+                select: { username: true },
+            })
+
             await prisma.notification.create({
                 data: {
                     userId: friendship.initiatorId,
                     type: "friend_request_accepted",
                     title: "Demande d'ami acceptée",
-                    message: `${session.user.name} a accepté votre demande d'ami`,
+                    message: `${currentUser?.username || "Un utilisateur"} a accepté votre demande d'ami`,
                     data: {
                         friendshipId: friendship.id,
                         accepterId: session.user.id,

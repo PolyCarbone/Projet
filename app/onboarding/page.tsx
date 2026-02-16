@@ -145,6 +145,22 @@ export default function OnboardingPage() {
             const data = await response.json()
             setUserData(data)
             determineCurrentStep(data)
+
+            // Traiter le code de parrainage stocké dans localStorage
+            const storedReferralCode = localStorage.getItem("referralCode")
+            if (storedReferralCode) {
+                try {
+                    await fetch("/api/referral/process", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ referralCode: storedReferralCode }),
+                    })
+                } catch (refError) {
+                    console.error("Failed to process referral:", refError)
+                } finally {
+                    localStorage.removeItem("referralCode")
+                }
+            }
         } catch (error) {
             console.error("Failed to fetch user data:", error)
             router.push("/auth/portal?mode=login")

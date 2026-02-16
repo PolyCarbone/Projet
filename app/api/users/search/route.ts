@@ -3,6 +3,11 @@ import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
 import { prisma } from "@/lib/prisma";
 
+// Vérifie si la requête est un email
+function isEmail(query: string): boolean {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(query)
+}
+
 export async function GET(req: NextRequest) {
     try {
         const session = await auth.api.getSession({
@@ -17,8 +22,10 @@ export async function GET(req: NextRequest) {
         const query = searchParams.get("q")
 
         if (!query || query.trim().length < 2) {
-            return NextResponse.json([])
+            return NextResponse.json({ users: [], emailNotFound: false, searchedEmail: null })
         }
+
+        const emailSearch = isEmail(query.trim())
 
         const users = await prisma.user.findMany({
             where: {
@@ -36,12 +43,16 @@ export async function GET(req: NextRequest) {
                                     mode: "insensitive",
                                 },
                             },
-                            {
-                                name: {
-                                    contains: query,
-                                    mode: "insensitive",
-                                },
-                            },
+                            ...(emailSearch
+                                ? [
+                                    {
+                                        email: {
+                                            equals: query.trim(),
+                                            mode: "insensitive" as const,
+                                        },
+                                    },
+                                ]
+                                : []),
                         ],
                     },
                 ],
@@ -57,7 +68,11 @@ export async function GET(req: NextRequest) {
             take: 10,
         })
 
-        return NextResponse.json(users)
+        return NextResponse.json({
+            users,
+            emailNotFound: emailSearch && users.length === 0,
+            searchedEmail: emailSearch ? query.trim() : null,
+        })
     } catch (error) {
         console.error("Failed to search users:", error)
         return NextResponse.json(

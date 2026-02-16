@@ -88,8 +88,10 @@ export default function ProfilePage() {
     }
 
     const handleEditPassword = () => {
-        // TODO: Implement password edit
-        console.log("Edit password")
+        const email = session?.user?.email
+        if (email) {
+            window.open(`/auth/forgot-password?email=${encodeURIComponent(email)}`, "_blank")
+        }
     }
 
     const handleEditUsername = () => {

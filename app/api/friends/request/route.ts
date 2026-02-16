@@ -53,13 +53,19 @@ export async function POST(req: NextRequest) {
             },
         })
 
+        // Récupérer le username de l'utilisateur actuel
+        const currentUser = await prisma.user.findUnique({
+            where: { id: session.user.id },
+            select: { username: true },
+        })
+
         // Créer une notification pour le destinataire
         await prisma.notification.create({
             data: {
                 userId: receiverId,
                 type: "friend_request",
                 title: "Nouvelle demande d'ami",
-                message: `${session.user.name} vous a envoyé une demande d'ami`,
+                message: `${currentUser?.username || "Un utilisateur"} vous a envoyé une demande d'ami`,
                 data: {
                     friendshipId: friendship.id,
                     senderId: session.user.id,
