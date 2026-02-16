@@ -261,7 +261,6 @@ export default function Team() {
                             teamDescription={team.description}
                             totalCO2Saved={team.totalCO2Saved}
                             memberCount={team.members.length}
-                            isCreator={team.isCreator}
                             onLeaveTeam={handleLeaveTeam}
                             onInviteFriend={() => setInviteModalOpen(true)}
                         />

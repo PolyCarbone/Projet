@@ -9,7 +9,6 @@ interface TeamInfoProps {
     teamDescription?: string
     totalCO2Saved: number
     memberCount: number
-    isCreator: boolean
     onLeaveTeam: () => void
     onInviteFriend: () => void
 }
@@ -19,7 +18,6 @@ export function TeamInfo({
     teamDescription,
     totalCO2Saved,
     memberCount,
-    isCreator,
     onLeaveTeam,
     onInviteFriend,
 }: TeamInfoProps) {
@@ -61,15 +59,13 @@ export function TeamInfo({
                     >
                         + Inviter un ami
                     </Button>
-                    {!isCreator && (
-                        <Button
-                            onClick={onLeaveTeam}
-                            variant="outline"
-                            className="flex-1 text-red-600 border-red-200 hover:bg-red-50"
-                        >
-                            Quitter l'équipe
-                        </Button>
-                    )}
+                    <Button
+                        onClick={onLeaveTeam}
+                        variant="outline"
+                        className="flex-1 text-red-600 border-red-200 hover:bg-red-50"
+                    >
+                        Quitter l'équipe
+                    </Button>
                 </div>
             </div>
         </Card>

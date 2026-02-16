@@ -41,37 +41,74 @@ export async function POST(req: NextRequest) {
 
         // Check if user is the creator
         if (team.creatorId === session.user.id) {
-            return NextResponse.json(
-                { error: "Le créateur de l'équipe ne peut pas la quitter" },
-                { status: 400 }
-            );
+
+            // if the user is the creator, the team is deleted and all members are removed
+
+
+            // Notify all members that the team has been deleted
+            // Do it first because after deleting the team, we won't be able to query the team members
+            const teamMembers = await prisma.teamMember.findMany({
+                where: { teamId },
+                include: {
+                    user: {
+                        select: {
+                            id: true,
+                            name: true,
+                        },
+                    },
+                },
+            });
+
+            for (const member of teamMembers) {
+                if (member.userId !== session.user.id) {
+                    await prisma.notification.create({
+                        data: {
+                            userId: member.userId,
+                            type: "team_deleted",
+                            title: `L'équipe ${team.name} a été supprimée`,
+                            message: `L'équipe ${team.name} a été supprimée par le créateur`,
+                            data: {
+                                teamId: teamId,
+                            },
+                        },
+                    });
+                }
+            }
+
+            await prisma.team.delete({
+                where: { id: teamId },
+            });
+
+        }
+        else { // if the user is not the creator, they can leave the team
+
+            // Delete team membership
+            await prisma.teamMember.delete({
+                where: {
+                    teamId_userId: {
+                        teamId,
+                        userId: session.user.id,
+                    },
+                },
+            });
+
+            // Notify team creator
+            await prisma.notification.create({
+                data: {
+                    userId: team.creatorId,
+                    type: "team_member_left",
+                    title: `${session.user.name} a quitté votre équipe`,
+                    message: `${session.user.name} a quitté l'équipe ${team.name}`,
+                    data: {
+                        teamId: teamId,
+                        userId: session.user.id,
+                    },
+                },
+            });
         }
 
-        // Delete team membership
-        await prisma.teamMember.delete({
-            where: {
-                teamId_userId: {
-                    teamId,
-                    userId: session.user.id,
-                },
-            },
-        });
-
-        // Notify team creator
-        await prisma.notification.create({
-            data: {
-                userId: team.creatorId,
-                type: "team_member_left",
-                title: `${session.user.name} a quitté votre équipe`,
-                message: `${session.user.name} a quitté l'équipe ${team.name}`,
-                data: {
-                    teamId: teamId,
-                    userId: session.user.id,
-                },
-            },
-        });
-
         return NextResponse.json({ success: true });
+
     } catch (error) {
         console.error("Failed to leave team:", error);
         return NextResponse.json(

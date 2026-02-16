@@ -57,6 +57,7 @@ const TopNavbar = () => {
         { title: "Mes défis", url: "/challenges", icon: <SquareCheckBig className="size-4" /> },
         { title: "Mes amis", url: "/social", icon: <UsersRound className="size-4" /> },
         { title: "Mon profil", url: "/profile", icon: <CircleUserRound className="size-4" /> },
+        { title: "Mon équipe", url: "/team", icon: <UsersRound className="size-4" /> },
         { title: "Refaire un bilan carbone", url: "/evaluation", icon: <FlaskConical className="size-4" /> },
     ];
 
