@@ -35,6 +35,7 @@ export function AuthForm({
 }: React.ComponentProps<"div"> & { defaultMode?: AuthMode }) {
     const searchParams = useSearchParams()
     const modeParam = searchParams.get("mode")
+    const referralCode = searchParams.get("ref")
     const initialMode = (modeParam === "signup" || modeParam === "login") ? modeParam : defaultMode
 
     const [mode, setMode] = useState<AuthMode>(initialMode)
@@ -153,6 +154,12 @@ export function AuthForm({
 
             toast.success("Inscription réussie ! Vérifiez votre email pour continuer.")
             await refreshSession()
+
+            // Sauvegarder le code de parrainage pour le traiter à la fin de l'onboarding
+            if (referralCode) {
+                localStorage.setItem("referralCode", referralCode)
+            }
+
             setTimeout(() => {
                 router.push("/onboarding")
                 router.refresh()
@@ -165,6 +172,12 @@ export function AuthForm({
 
     async function handleSocialAuth(provider: "google") {
         setIsSocialLoading(provider)
+
+        // Sauvegarder le code de parrainage avant la redirection OAuth
+        if (referralCode) {
+            localStorage.setItem("referralCode", referralCode)
+        }
+
         try {
             await authClient.signIn.social({
                 provider,

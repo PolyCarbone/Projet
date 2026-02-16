@@ -60,12 +60,35 @@ export async function POST(request: NextRequest) {
         });
 
         // Marquer l'onboarding comme terminé si c'est le premier test
-        await prisma.user.update({
+        const updatedUser = await prisma.user.update({
             where: { id: session.user.id },
             data: {
                 onboardingStep: 4,
             },
+            select: { referredBy: true },
         });
+
+        // Si l'utilisateur a été parrainé, créer l'amitié avec le parrain
+        if (updatedUser.referredBy) {
+            const existingFriendship = await prisma.friendship.findFirst({
+                where: {
+                    OR: [
+                        { initiatorId: updatedUser.referredBy, receiverId: session.user.id },
+                        { initiatorId: session.user.id, receiverId: updatedUser.referredBy },
+                    ],
+                },
+            });
+
+            if (!existingFriendship) {
+                await prisma.friendship.create({
+                    data: {
+                        initiatorId: updatedUser.referredBy,
+                        receiverId: session.user.id,
+                        status: "accepted",
+                    },
+                });
+            }
+        }
 
         return NextResponse.json(carbonFootprint, { status: 201 });
     } catch (error) {
