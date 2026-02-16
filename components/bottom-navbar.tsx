@@ -17,7 +17,7 @@ export function BottomNavbar({ children }: BottomNavProps) {
 
     const navItems = [
         {
-            href: "/",
+            href: "/home",
             label: "Accueil",
             icon: Home,
         },
