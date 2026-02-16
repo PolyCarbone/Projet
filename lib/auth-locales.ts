@@ -17,7 +17,7 @@ export const frenchLocale = {
     // Erreurs d'inscription
     "auth.error.email_already_exists": "Cette adresse email est déjà utilisée",
     "auth.error.user_already_exists": "Un compte existe déjà avec cet email",
-    "auth.error.weak_password": "Le mot de passe est trop faible",
+    "auth.error.weak_password": "Le mot de passe doit contenir au moins 12 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial.",
     "auth.error.password_too_short": "Le mot de passe est trop court",
     "auth.error.password_mismatch": "Les mots de passe ne correspondent pas",
 

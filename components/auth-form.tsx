@@ -22,6 +22,7 @@ import { useState, useEffect } from "react"
 import { toast } from "sonner"
 import { useRouter, useSearchParams } from "next/navigation"
 import { authClient } from "@/lib/auth-client"
+import { useAuth } from "@/lib/auth-context"
 import { translateAuthError } from "@/lib/auth-errors"
 import { frenchLocale } from "@/lib/auth-locales"
 
@@ -41,12 +42,12 @@ export function AuthForm({
     const [isSocialLoading, setIsSocialLoading] = useState<string | null>(null)
     const [step, setStep] = useState(1)
     const [formData, setFormData] = useState({
-        name: "",
         email: "",
         password: "",
         confirmPassword: ""
     })
     const router = useRouter()
+    const { refreshSession } = useAuth()
 
     // Update mode when URL parameter changes
     useEffect(() => {
@@ -61,7 +62,6 @@ export function AuthForm({
         setMode(newMode)
         setStep(1)
         setFormData({
-            name: "",
             email: "",
             password: "",
             confirmPassword: ""
@@ -96,7 +96,8 @@ export function AuthForm({
             }
 
             toast.success("Connexion réussie !")
-            router.push("/onboarding")
+            await refreshSession()
+            router.push("/challenges")
             router.refresh()
         } catch (error: any) {
             toast.error(translateAuthError(error as any))
@@ -104,35 +105,44 @@ export function AuthForm({
         }
     }
 
+
+    function isPasswordStrong(password: string) {
+        // Au moins une majuscule, une minuscule, un chiffre, un caractère spécial, et 12 caractères
+        return /[A-Z]/.test(password) &&
+            /[a-z]/.test(password) &&
+            /[0-9]/.test(password) &&
+            /[^A-Za-z0-9]/.test(password) &&
+            password.length >= 12;
+    }
+
     async function handleSignupSubmit() {
         setIsLoading(true)
 
-        const { name, email, password, confirmPassword } = formData
+        const { email, password, confirmPassword } = formData
 
         // Validation
-        if (!name || name.trim().length < 2) {
-            toast.error("Veuillez entrer un nom valide (au moins 2 caractères)")
-            setIsLoading(false)
-            return
-        }
-
         if (password !== confirmPassword) {
             toast.error(frenchLocale["auth.error.password_mismatch"])
             setIsLoading(false)
             return
         }
 
-        if (password.length < 12) {
-            toast.error(frenchLocale["auth.error.password_too_short"])
+        if (!isPasswordStrong(password)) {
+            toast.error("Le mot de passe doit contenir au moins 12 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial.")
             setIsLoading(false)
             return
         }
 
         try {
+            // Extraire un nom par défaut depuis l'email
+            const emailName = email.split('@')[0].split('.').map((part: string) =>
+                part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+            ).join(' ')
+
             const { data, error } = await authClient.signUp.email({
                 email,
                 password,
-                name: name.trim(),
+                name: emailName,
             })
 
             if (error) {
@@ -142,6 +152,7 @@ export function AuthForm({
             }
 
             toast.success("Inscription réussie ! Vérifiez votre email pour continuer.")
+            await refreshSession()
             setTimeout(() => {
                 router.push("/onboarding")
                 router.refresh()
@@ -157,7 +168,7 @@ export function AuthForm({
         try {
             await authClient.signIn.social({
                 provider,
-                callbackURL: "/onboarding",
+                callbackURL: "/",
             })
         } catch (error: any) {
             toast.error(error?.message || `Erreur lors de la connexion avec ${provider}`)
@@ -169,11 +180,6 @@ export function AuthForm({
         e.preventDefault()
 
         // Validation de l'étape 1
-        if (!formData.name || formData.name.trim().length < 2) {
-            toast.error("Veuillez entrer un nom valide (au moins 2 caractères)")
-            return
-        }
-
         if (!formData.email || !formData.email.includes("@")) {
             toast.error("Veuillez entrer une adresse email valide")
             return
@@ -284,13 +290,10 @@ export function AuthForm({
                         </form>
                     ) : (
                         // Signup Form with Steps
-                        <div className="overflow-hidden">
-                            <div
-                                className="flex transition-transform duration-500 ease-in-out"
-                                style={{ transform: `translateX(-${(step - 1) * 100}%)` }}
-                            >
-                                {/* Step 1: Name, Email and Social */}
-                                <div className="w-full flex-shrink-0 px-1">
+                        <div>
+                            {step === 1 ? (
+                                // Step 1: Name, Email and Social
+                                <div>
                                     <form onSubmit={handleStep1Submit}>
                                         <FieldGroup className="gap-3">
                                             <Field>
@@ -312,19 +315,6 @@ export function AuthForm({
                                             <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
                                                 Ou
                                             </FieldSeparator>
-                                            <Field>
-                                                <FieldLabel htmlFor="name">Nom complet</FieldLabel>
-                                                <Input
-                                                    id="name"
-                                                    name="name"
-                                                    type="text"
-                                                    placeholder="Jean Dupont"
-                                                    required
-                                                    value={formData.name}
-                                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                                    disabled={isLoading || isSocialLoading !== null}
-                                                />
-                                            </Field>
                                             <Field>
                                                 <FieldLabel htmlFor="signup-email">Email</FieldLabel>
                                                 <Input
@@ -349,16 +339,13 @@ export function AuthForm({
                                         </FieldGroup>
                                     </form>
                                 </div>
-
-                                {/* Step 2: Password */}
-                                <div className="w-full flex-shrink-0 px-1">
+                            ) : (
+                                // Step 2: Password
+                                <div>
                                     <form onSubmit={handleStep2Submit}>
                                         <FieldGroup className="gap-3">
                                             <div className="flex flex-col items-center gap-2 text-center mb-2">
                                                 <h2 className="text-lg font-semibold">Créer un mot de passe</h2>
-                                                <p className="text-sm text-muted-foreground">
-                                                    Choisissez un mot de passe sécurisé
-                                                </p>
                                             </div>
                                             <Field>
                                                 <FieldLabel htmlFor="password">Mot de passe</FieldLabel>
@@ -387,7 +374,7 @@ export function AuthForm({
                                                     minLength={12}
                                                 />
                                                 <FieldDescription>
-                                                    Doit contenir au moins 12 caractères.
+                                                    12 caractères minimum, avec majuscule, minuscule, chiffre et caractère spécial.
                                                 </FieldDescription>
                                             </Field>
                                             <Field>
@@ -410,20 +397,11 @@ export function AuthForm({
                                         </FieldGroup>
                                     </form>
                                 </div>
-                            </div>
+                            )}
                         </div>
                     )}
                 </CardContent>
             </Card>
-
-            {
-                mode === "signup" && (
-                    <FieldDescription className="px-6 text-center">
-                        En vous inscrivant, vous acceptez nos <a href="#">Conditions d'utilisation</a>{" "}
-                        et <a href="#">Politique de confidentialité</a>.
-                    </FieldDescription>
-                )
-            }
         </div >
     )
 }

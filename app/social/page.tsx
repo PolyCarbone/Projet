@@ -308,7 +308,7 @@ export default function SocialPage() {
                                                             <UserAvatar
                                                                 avatar={user.avatar}
                                                                 avatarBorderColor={user.avatarBorderColor}
-                                                                username={user.username || user.name}
+                                                                username={user.username || "Utilisateur"}
                                                                 userId={user.id}
                                                                 size="md"
                                                                 clickable={false}
@@ -316,7 +316,7 @@ export default function SocialPage() {
                                                             />
                                                             <div>
                                                                 <p className="font-semibold">
-                                                                    {user.username || user.name}
+                                                                    {user.username || "Utilisateur"}
                                                                 </p>
                                                                 <p className="text-sm text-muted-foreground">
                                                                     {user.totalCO2Saved.toFixed(1)} kg CO₂ économisés

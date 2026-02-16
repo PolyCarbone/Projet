@@ -3,10 +3,7 @@ import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 
 // Routes d'authentification (accès uniquement si NON connecté)
-const AUTH_ROUTES = ["/auth/portal", "/auth/forgot-password", "/auth/reset-password"];
-
-// Routes d'onboarding (accès uniquement si connecté ET en cours d'onboarding)
-const ONBOARDING_ROUTES = ["/onboarding"];
+const AUTH_ROUTES = ["/auth/portal"];
 
 // Routes protégées (accès uniquement si connecté ET onboarding terminé)
 const PROTECTED_ROUTES = ["/profile", "/social", "/challenges", "/evaluation"];
