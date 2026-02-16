@@ -82,21 +82,6 @@ export default function ProfilePage() {
         }
     }, [session, isAuthLoading])
 
-    const handleEditEmail = () => {
-        // TODO: Implement email edit
-        console.log("Edit email")
-    }
-
-    const handleEditPassword = () => {
-        // TODO: Implement password edit
-        console.log("Edit password")
-    }
-
-    const handleEditUsername = () => {
-        // TODO: Implement username edit
-        console.log("Edit username")
-    }
-
     const isLoading = isAuthLoading || isProfileLoading || isLoadingFootprint || isLoadingTimeline || isLoadingStats
 
     return (
@@ -127,9 +112,6 @@ export default function ProfilePage() {
                                         userId: session.user.id,
                                     }}
                                     isCurrentUser={true}
-                                    onEditEmail={handleEditEmail}
-                                    onEditPassword={handleEditPassword}
-                                    onEditUsername={handleEditUsername}
                                 />
                             </div>
                             <div className="px-4 pb-4 max-w-7xl mx-auto">
