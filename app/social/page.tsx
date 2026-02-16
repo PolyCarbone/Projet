@@ -8,7 +8,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserAvatar } from "@/components/user-avatar";
-import { Search, UserPlus, Users, Clock, CheckCircle, XCircle } from "lucide-react";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import { Search, UserPlus, Users, Clock, CheckCircle, XCircle, Mail } from "lucide-react";
 import { toast } from "sonner";
 
 interface Friend {
@@ -50,6 +58,10 @@ export default function SocialPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResults, setSearchResults] = useState<User[]>([]);
     const [isSearching, setIsSearching] = useState(false);
+    const [referralEmail, setReferralEmail] = useState<string | null>(null);
+    const [showReferralDialog, setShowReferralDialog] = useState(false);
+    const [isSendingReferral, setIsSendingReferral] = useState(false);
+    const [emailNotFound, setEmailNotFound] = useState(false);
 
     useEffect(() => {
         if (session?.user) {
@@ -85,6 +97,8 @@ export default function SocialPage() {
     const searchUsers = async (query: string) => {
         if (!query.trim()) {
             setSearchResults([]);
+            setEmailNotFound(false);
+            setReferralEmail(null);
             return;
         }
 
@@ -93,7 +107,9 @@ export default function SocialPage() {
             const response = await fetch(`/api/users/search?q=${encodeURIComponent(query)}`);
             if (response.ok) {
                 const data = await response.json();
-                setSearchResults(data);
+                setSearchResults(data.users || []);
+                setEmailNotFound(data.emailNotFound || false);
+                setReferralEmail(data.searchedEmail || null);
             }
         } catch (error) {
             console.error("Failed to search users:", error);
@@ -142,6 +158,40 @@ export default function SocialPage() {
         } catch (error) {
             console.error("Failed to respond to request:", error);
             toast.error("Erreur lors du traitement de la demande");
+        }
+    };
+
+    const handleReferralClick = () => {
+        setShowReferralDialog(true);
+    };
+
+    const sendReferralEmail = async () => {
+        if (!referralEmail) return;
+
+        setIsSendingReferral(true);
+        try {
+            const response = await fetch("/api/referral", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: referralEmail }),
+            });
+
+            if (response.ok) {
+                toast.success(`Email de parrainage envoyé à ${referralEmail}`);
+                setShowReferralDialog(false);
+                setSearchQuery("");
+                setSearchResults([]);
+                setEmailNotFound(false);
+                setReferralEmail(null);
+            } else {
+                const error = await response.json();
+                toast.error(error.error || "Erreur lors de l'envoi de l'email");
+            }
+        } catch (error) {
+            console.error("Failed to send referral email:", error);
+            toast.error("Erreur lors de l'envoi de l'email de parrainage");
+        } finally {
+            setIsSendingReferral(false);
         }
     };
 
@@ -308,7 +358,7 @@ export default function SocialPage() {
                                                             <UserAvatar
                                                                 avatar={user.avatar}
                                                                 avatarBorderColor={user.avatarBorderColor}
-                                                                username={user.username || user.name}
+                                                                username={user.username || "Utilisateur"}
                                                                 userId={user.id}
                                                                 size="md"
                                                                 clickable={false}
@@ -316,7 +366,7 @@ export default function SocialPage() {
                                                             />
                                                             <div>
                                                                 <p className="font-semibold">
-                                                                    {user.username || user.name}
+                                                                    {user.username || "Utilisateur"}
                                                                 </p>
                                                                 <p className="text-sm text-muted-foreground">
                                                                     {user.totalCO2Saved.toFixed(1)} kg CO₂ économisés
@@ -334,6 +384,20 @@ export default function SocialPage() {
                                                     </div>
                                                 ))}
                                             </div>
+                                        ) : searchQuery && !isSearching && emailNotFound && referralEmail ? (
+                                            <div className="flex flex-col items-center gap-4 py-8">
+                                                <Mail className="h-12 w-12 text-muted-foreground" />
+                                                <p className="text-muted-foreground text-center">
+                                                    Aucun compte associé à <span className="font-semibold text-foreground">{referralEmail}</span>
+                                                </p>
+                                                <Button
+                                                    onClick={handleReferralClick}
+                                                    variant="default"
+                                                >
+                                                    <Mail className="h-4 w-4 mr-2" />
+                                                    Envoyer un lien de parrainage
+                                                </Button>
+                                            </div>
                                         ) : searchQuery && !isSearching ? (
                                             <div className="text-center py-8 text-muted-foreground">
                                                 Aucun utilisateur trouvé
@@ -346,6 +410,39 @@ export default function SocialPage() {
                     </Tabs>
                 </div>
             </div>
+
+            {/* Dialog de confirmation de parrainage */}
+            <Dialog open={showReferralDialog} onOpenChange={setShowReferralDialog}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Envoyer un lien de parrainage</DialogTitle>
+                        <DialogDescription>
+                            Êtes-vous sûr de vouloir envoyer un lien de parrainage à{" "}
+                            <span className="font-semibold text-foreground">{referralEmail}</span> ?
+                        </DialogDescription>
+                    </DialogHeader>
+                    <p className="text-sm text-muted-foreground">
+                        Un email d'invitation sera envoyé avec un lien pour s'inscrire sur PolyCarbone.
+                        Si cette personne s'inscrit via votre lien, vous pourrez recevoir des récompenses.
+                    </p>
+                    <DialogFooter className="gap-2 sm:gap-0">
+                        <Button
+                            variant="outline"
+                            onClick={() => setShowReferralDialog(false)}
+                            disabled={isSendingReferral}
+                        >
+                            Annuler
+                        </Button>
+                        <Button
+                            onClick={sendReferralEmail}
+                            disabled={isSendingReferral}
+                        >
+                            <Mail className="h-4 w-4 mr-2" />
+                            {isSendingReferral ? "Envoi en cours..." : "Envoyer l'invitation"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

@@ -43,9 +43,8 @@ export const auth = betterAuth({
             },
             onboardingStep: {
                 type: "number",
-                default: 0,
             },
-        }
+        },
     },
 
     emailAndPassword: {
@@ -54,12 +53,18 @@ export const auth = betterAuth({
         // Ne pas bloquer la connexion si l'email n'est pas vérifié
         requireEmailVerification: false,
         sendResetPassword: async ({ user, url }) => {
-            await sendEmail({
+            // Récupérer le username depuis la base de données
+            const userWithUsername = await prisma.user.findUnique({
+                where: { id: user.id },
+                select: { username: true },
+            })
+
+            void sendEmail({
                 to: user.email,
                 subject: "Réinitialisez votre mot de passe - PolyCarbone",
                 html: `
                     <h1>Réinitialisation de mot de passe</h1>
-                    <p>Bonjour ${user.name || ""},</p>
+                    <p>Bonjour @${userWithUsername?.username || 'utilisateur'},</p>
                     <p>Vous avez demandé à réinitialiser votre mot de passe.</p>
                     <p>Cliquez sur le lien ci-dessous pour définir un nouveau mot de passe :</p>
                     <a href="${url}" style="display: inline-block; padding: 12px 24px; background-color: #22c55e; color: white; text-decoration: none; border-radius: 6px;">Réinitialiser mon mot de passe</a>
@@ -76,12 +81,18 @@ export const auth = betterAuth({
         sendOnSignUp: true,
         autoSignInAfterVerification: true,
         sendVerificationEmail: async ({ user, url }) => {
-            await sendEmail({
+            // Récupérer le username depuis la base de données
+            const userWithUsername = await prisma.user.findUnique({
+                where: { id: user.id },
+                select: { username: true },
+            })
+
+            void sendEmail({
                 to: user.email,
                 subject: "Vérifiez votre adresse email - PolyCarbone",
                 html: `
                     <h1>Bienvenue sur PolyCarbone !</h1>
-                    <p>Bonjour ${user.name || ""},</p>
+                    <p>Bonjour @${userWithUsername?.username || 'utilisateur'},</p>
                     <p>Merci de vous être inscrit. Veuillez vérifier votre adresse email en cliquant sur le bouton ci-dessous :</p>
                     <a href="${url}" style="display: inline-block; padding: 12px 24px; background-color: #22c55e; color: white; text-decoration: none; border-radius: 6px;">Vérifier mon email</a>
                     <p>Ce lien expire dans 24 heures.</p>
