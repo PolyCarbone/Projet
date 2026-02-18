@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Bell, Check, UserPlus, Trophy, Sparkles, X } from "lucide-react"
+import { Bell, Check, UserPlus, Trophy, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
     DropdownMenu,
@@ -47,22 +47,28 @@ export function NotificationsDropdown() {
         }
     }
 
-    const markAsRead = async (notificationId: string) => {
+    const markAllAsRead = async () => {
+        if (unreadCount === 0) return
+
         try {
-            const response = await fetch(`/api/notifications/${notificationId}`, {
+            const response = await fetch("/api/notifications", {
                 method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ isRead: true }),
             })
 
             if (response.ok) {
                 setNotifications(prev =>
-                    prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n)
+                    prev.map(n => ({ ...n, isRead: true }))
                 )
-                setUnreadCount(prev => Math.max(0, prev - 1))
+                setUnreadCount(0)
             }
         } catch (error) {
-            console.error("Failed to mark notification as read:", error)
+            console.error("Failed to mark all notifications as read:", error)
+        }
+    }
+
+    const handleOpenChange = (open: boolean) => {
+        if (open) {
+            markAllAsRead()
         }
     }
 
@@ -81,7 +87,7 @@ export function NotificationsDropdown() {
             })
 
             if (response.ok) {
-                await markAsRead(notificationId)
+                await deleteNotification(notificationId)
                 fetchNotifications()
             }
         } catch (error) {
@@ -131,7 +137,7 @@ export function NotificationsDropdown() {
     }
 
     return (
-        <DropdownMenu>
+        <DropdownMenu onOpenChange={handleOpenChange}>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative hover:bg-white">
                     <Bell className="h-5 w-5" />
@@ -169,7 +175,7 @@ export function NotificationsDropdown() {
                                 "relative px-2 py-3 hover:bg-accent cursor-pointer transition-colors border-b last:border-b-0",
                                 !notification.isRead && "bg-blue-50 dark:bg-blue-950/20"
                             )}
-                            onClick={() => !notification.isRead && markAsRead(notification.id)}
+                            onClick={() => deleteNotification(notification.id)}
                         >
                             <div className="flex items-start gap-3">
                                 <div className="mt-1">{getNotificationIcon(notification.type)}</div>
@@ -212,17 +218,6 @@ export function NotificationsDropdown() {
                                         </div>
                                     )}
                                 </div>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-6 w-6 opacity-0 group-hover:opacity-100 hover:bg-destructive/10"
-                                    onClick={(e) => {
-                                        e.stopPropagation()
-                                        deleteNotification(notification.id)
-                                    }}
-                                >
-                                    <X className="h-3 w-3" />
-                                </Button>
                             </div>
                         </div>
                     ))

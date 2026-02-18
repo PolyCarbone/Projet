@@ -32,3 +32,31 @@ export async function GET(req: NextRequest) {
         )
     }
 }
+
+export async function PATCH(req: NextRequest) {
+    try {
+        const session = await auth.api.getSession({
+            headers: await headers(),
+        })
+
+        if (!session?.user) {
+            return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
+        }
+
+        await prisma.notification.updateMany({
+            where: {
+                userId: session.user.id,
+                isRead: false,
+            },
+            data: { isRead: true },
+        })
+
+        return NextResponse.json({ success: true })
+    } catch (error) {
+        console.error("Failed to mark all notifications as read:", error)
+        return NextResponse.json(
+            { error: "Erreur lors de la mise à jour des notifications" },
+            { status: 500 }
+        )
+    }
+}
