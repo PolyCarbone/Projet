@@ -16,11 +16,11 @@ export function ConditionalLayout({ children }: { children: React.ReactNode }) {
     }
 
     return (
-        <>
+        <div className="flex flex-col flex-1 min-h-0">
             <TopNavbar />
             <BottomNavbar>
                 {children}
             </BottomNavbar>
-        </>
+        </div>
     )
 }

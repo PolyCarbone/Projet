@@ -86,66 +86,16 @@ export default function EvaluationPage() {
         }
     }, [])
 
-    // Interface plein écran
-    if (isFullscreen) {
-        return (
-            <div className="h-screen w-screen overflow-hidden relative">
-                <Button
-                    onClick={() => setIsFullscreen(false)}
-                    size="icon"
-                    variant="secondary"
-                    className="absolute top-4 right-4 z-50 shadow-lg"
-                >
-                    <Minimize2 className="h-4 w-4" />
-                </Button>
-
-                <iframe
-                    id="iframeNosGestesClimat"
-                    src={`https://nosgestesclimat.fr/simulateur/bilan?iframe=true&integratorUrl=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}&shareData=true&onlySimulation=true`}
-                    className="w-full h-full border-none"
-                    allow="fullscreen; clipboard-write"
-                    allowFullScreen
-                    title="Simulateur Nos Gestes Climat"
-                />
-            </div>
-        )
-    }
-
-    // Interface normale
     return (
-        <div className="h-screen overflow-hidden flex flex-col">
-            <div className="flex-1 flex flex-col min-h-0">
-                <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-                    <div className="flex-1">
-                        <h1 className="text-2xl font-bold text-white text-center mb-2 drop-shadow-lg">
-                            Calculez votre empreinte carbone
-                        </h1>
-                        <p className="text-white/80 text-center text-sm drop-shadow">
-                            Découvrez votre impact environnemental avec le simulateur Nos Gestes Climat de l&apos;ADEME
-                        </p>
-                    </div>
-                    <Button
-                        onClick={() => setIsFullscreen(true)}
-                        size="icon"
-                        variant="secondary"
-                        className="ml-4 shadow-lg"
-                        title="Plein écran"
-                    >
-                        <Maximize2 className="h-4 w-4" />
-                    </Button>
-                </div>
-
-                <div className="flex-1 container mx-auto px-4 pb-4 min-h-0">
-                    <iframe
-                        id="iframeNosGestesClimat"
-                        src={`https://nosgestesclimat.fr/simulateur/bilan?iframe=true&integratorUrl=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}&shareData=true&onlySimulation=true`}
-                        className="w-full h-full border-none rounded-lg"
-                        allow="fullscreen; clipboard-write"
-                        allowFullScreen
-                        title="Simulateur Nos Gestes Climat"
-                    />
-                </div>
-            </div>
+        <div className="h-full w-full overflow-hidden">
+            <iframe
+                id="iframeNosGestesClimat"
+                src={`https://nosgestesclimat.fr/simulateur/bilan?iframe=true&integratorUrl=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}&shareData=true&onlySimulation=true`}
+                className="w-full h-full border-none"
+                allow="fullscreen; clipboard-write"
+                allowFullScreen
+                title="Simulateur Nos Gestes Climat"
+            />
         </div>
     )
 }
