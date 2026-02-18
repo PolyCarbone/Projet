@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Loader2, X, Check } from "lucide-react"
 import Image from "next/image" // On utilise Image de Next.js comme dans l'onboarding
 
-export type EditType = "username" | "email" | "password" | "banner" | "avatar" | null
+export type EditType = "username" | "email" | "password" | "banner" | "avatar" | "borderColor"| null
 
 interface EditProfileDialogProps {
   isOpen: boolean
@@ -14,7 +14,6 @@ interface EditProfileDialogProps {
   type: EditType
   currentValue?: string
   userId: string
-  // On garde ça pour les bannières plus tard
   unlockedItems?: { id: string; imageUrl: string; name: string }[] 
 }
 
@@ -31,7 +30,9 @@ export function EditProfileDialog({
   
   // États spécifiques pour les Avatars (comme dans l'onboarding)
   const [avatars, setAvatars] = useState<{ id: string; imageUrl: string; name: string }[]>([])
+  const [borders, setBorders] = useState<{ id: string; colorValue: string; name: string }[]>([])
   const [isLoadingAvatars, setIsLoadingAvatars] = useState(false)
+  const [isFetchingItems, setIsFetchingItems] = useState(false)
 
   // Reset et Fetching à l'ouverture
   useEffect(() => {
@@ -40,9 +41,8 @@ export function EditProfileDialog({
         setError("")
         
         // Si c'est le mode avatar, on va chercher la liste via l'API existante
-        if (type === "avatar") {
-            fetchAvatars()
-        }
+        if (type === "avatar") fetchAvatars()
+        if (type === "borderColor") fetchBorders() // <-- Trigger fetch
     }
   }, [isOpen, type, currentValue])
 
@@ -61,6 +61,21 @@ export function EditProfileDialog({
       }
   }
 
+  const fetchBorders = async () => {
+      setIsFetchingItems(true)
+      try {
+          const res = await fetch("/api/user/cosmetics/borders")
+          if (res.ok) {
+              const data = await res.json()
+              setBorders(data.borders || [])
+          }
+      } catch (err) {
+          console.error(err)
+      } finally {
+          setIsFetchingItems(false)
+      }
+  }
+
   if (!isOpen) return null
 
   // Configuration des textes
@@ -70,23 +85,85 @@ export function EditProfileDialog({
     password: { title: "Mot de passe", desc: "Nouveau mot de passe sécurisé." },
     banner: { title: "Choisir une bannière", desc: "Sélectionnez parmi vos items débloqués." },
     avatar: { title: "Choisir un avatar", desc: "Changez votre identité visuelle." },
+    borderColor: { title: "Couleur du contour", desc: "Personnalisez le cercle autour de votre avatar." },
   }
   const currentConfig = type ? config[type] : { title: "", desc: "" }
 
   const handleSave = async () => {
     setIsLoading(true); setError("")
+    
+    // Déterminer la bonne clé pour l'API
+    let bodyKey = type as string;
+    if (type === "banner") bodyKey = "bannerId";
+    if (type === "avatar") bodyKey = "avatarId";
+    if (type === "borderColor") bodyKey = "avatarBorderColor"; // <-- Important
+
     try {
       const res = await fetch("/api/user/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-            [type === "banner" ? "bannerId" : type === "avatar" ? "avatarId" : type as string]: value 
-        }),
+        body: JSON.stringify({ [bodyKey]: value }),
       })
       if (!res.ok) throw new Error("Erreur serveur")
       window.location.reload()
     } catch (err) { setError("Erreur lors de la sauvegarde") } 
     finally { setIsLoading(false) }
+  }
+
+// 3. Rendu de la sélection de couleur
+  const renderBorderSelection = () => {
+    if (isFetchingItems) return <div className="flex justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-green-500" /></div>
+
+    // Couleurs par défaut si l'API ne renvoie rien (fallback)
+    const displayBorders = borders.length > 0 ? borders : [
+        { id: "default_1", colorValue: "#22c55e", name: "Vert Poly" }, // Green-500
+        { id: "default_2", colorValue: "#ffffff", name: "Blanc" },
+        { id: "default_3", colorValue: "#3b82f6", name: "Bleu" },
+        { id: "default_4", colorValue: "#ef4444", name: "Rouge" },
+        { id: "default_5", colorValue: "#eab308", name: "Jaune" },
+    ];
+
+    return (
+        <div className="space-y-6">
+             {/* Prévisualisation */}
+             <div className="flex justify-center py-4">
+                <div 
+                    className="w-24 h-24 rounded-full bg-[#202020] flex items-center justify-center border-4 transition-all duration-300"
+                    style={{ borderColor: value || '#22c55e' }} // La couleur change en direct
+                >
+                    <span className="text-xs text-gray-500">Aperçu</span>
+                </div>
+             </div>
+
+             {/* Grille de couleurs */}
+             <div className="grid grid-cols-5 gap-4 px-2">
+                {displayBorders.map((border) => (
+                    <button
+                        key={border.id}
+                        onClick={() => setValue(border.colorValue)}
+                        className={`group relative w-12 h-12 rounded-full overflow-hidden transition-all ${
+                            value === border.colorValue 
+                            ? "ring-2 ring-offset-2 ring-offset-[#121212] ring-white scale-110" 
+                            : "hover:scale-110 opacity-80 hover:opacity-100"
+                        }`}
+                        title={border.name}
+                    >
+                        {/* La couleur */}
+                        <div 
+                            className="w-full h-full"
+                            style={{ backgroundColor: border.colorValue }}
+                        />
+                        {/* Checkmark si sélectionné */}
+                        {value === border.colorValue && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                                <Check className="w-5 h-5 text-white drop-shadow-md" />
+                            </div>
+                        )}
+                    </button>
+                ))}
+             </div>
+        </div>
+    )
   }
 
   // --- RENDU DU CONTENU SPÉCIFIQUE AVATAR ---
@@ -172,6 +249,7 @@ export function EditProfileDialog({
         {/* Contenu Scrollable */}
         <div className="py-2 overflow-y-auto">
             {type === "avatar" ? renderAvatarSelection() : 
+             type === "borderColor" ? renderBorderSelection() :
              type === "banner" ? renderBannerSelection() : (
                 <Input 
                     value={value} onChange={(e) => setValue(e.target.value)} 

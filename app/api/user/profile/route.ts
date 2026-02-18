@@ -80,7 +80,7 @@ export async function PATCH(req: Request) {
     if (!session?.user?.id) return new NextResponse("Unauthorized", { status: 401 });
 
     const body = await req.json();
-    const { username, bannerId, avatarId } = body;
+    const { username, bannerId, avatarId, avatarBorderColor } = body;
 
     // Mise à jour dynamique : Prisma ne modifiera que les champs fournis
     const updatedUser = await prisma.user.update({
@@ -89,6 +89,7 @@ export async function PATCH(req: Request) {
         ...(username && { username }),
         ...(bannerId && { bannerId }),
         ...(avatarId && { avatarId }),
+        ...(avatarBorderColor && { avatarBorderColor }),
       },
     });
 

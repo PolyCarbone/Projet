@@ -63,6 +63,7 @@ export function ProfileHeaderCard({
             case "email": return user.email || ""
             case "banner": return user.banner?.id || ""
             case "avatar": return user.avatar?.id || ""
+            case "borderColor": return user.avatarBorderColor || "#22c55e" // Vert par défaut si null
             default: return ""
         }
     }
@@ -118,6 +119,9 @@ export function ProfileHeaderCard({
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => setEditingType("avatar")}>
                                     <CircleUser className="mr-2 h-4 w-4" /> Modifier l'avatar
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setEditingType("borderColor")}>
+                                    <div className="mr-2 h-4 w-4 rounded-full border-2 border-current" /> Couleur du contour
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => setEditingType("banner")}>
                                     <ImageIcon className="mr-2 h-4 w-4" /> Modifier la bannière
