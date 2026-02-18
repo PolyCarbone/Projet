@@ -62,8 +62,7 @@ export function UserAvatar({
     const getHref = () => {
         if (!clickable) return undefined
         if (isCurrentUser) return "/profile"
-        // TODO: Implémenter la page de profil des autres utilisateurs
-        // return `/users/${userId}`
+        if (userId) return `/profile/${userId}`
         return undefined
     }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { useUserProfile } from "@/lib/user-profile-context";
 import { Button } from "@/components/ui/button";
@@ -229,9 +230,10 @@ export default function SocialPage() {
                                 <CardContent>
                                     <div className="space-y-4">
                                         {friends.map((friendship) => (
-                                            <div
+                                            <Link
                                                 key={friendship.id}
-                                                className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent transition-colors"
+                                                href={`/profile/${friendship.friend.id}`}
+                                                className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent transition-colors cursor-pointer"
                                             >
                                                 <div className="flex items-center gap-4">
                                                     <UserAvatar
@@ -240,7 +242,7 @@ export default function SocialPage() {
                                                         username={friendship.friend.username || friendship.friend.name}
                                                         userId={friendship.friend.id}
                                                         size="md"
-                                                        clickable={true}
+                                                        clickable={false}
                                                         isCurrentUser={false}
                                                     />
                                                     <div>
@@ -252,7 +254,7 @@ export default function SocialPage() {
                                                         </p>
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </Link>
                                         ))}
                                     </div>
                                 </CardContent>
@@ -277,14 +279,17 @@ export default function SocialPage() {
                                                 key={friendship.id}
                                                 className="flex items-center justify-between p-4 border rounded-lg"
                                             >
-                                                <div className="flex items-center gap-4">
+                                                <Link
+                                                    href={`/profile/${friendship.friend.id}`}
+                                                    className="flex items-center gap-4 flex-1 min-w-0"
+                                                >
                                                     <UserAvatar
                                                         avatar={friendship.friend.avatar}
                                                         avatarBorderColor={friendship.friend.avatarBorderColor}
                                                         username={friendship.friend.username || friendship.friend.name}
                                                         userId={friendship.friend.id}
                                                         size="md"
-                                                        clickable={true}
+                                                        clickable={false}
                                                         isCurrentUser={false}
                                                     />
                                                     <div>
@@ -295,7 +300,7 @@ export default function SocialPage() {
                                                             {friendship.friend.totalCO2Saved.toFixed(1)} kg CO₂ économisés
                                                         </p>
                                                     </div>
-                                                </div>
+                                                </Link>
                                                 <div className="flex gap-2">
                                                     <Button
                                                         size="sm"
@@ -354,7 +359,10 @@ export default function SocialPage() {
                                                         key={user.id}
                                                         className="flex items-center justify-between p-4 border rounded-lg"
                                                     >
-                                                        <div className="flex items-center gap-4">
+                                                        <Link
+                                                            href={`/profile/${user.id}`}
+                                                            className="flex items-center gap-4 flex-1 min-w-0"
+                                                        >
                                                             <UserAvatar
                                                                 avatar={user.avatar}
                                                                 avatarBorderColor={user.avatarBorderColor}
@@ -372,7 +380,7 @@ export default function SocialPage() {
                                                                     {user.totalCO2Saved.toFixed(1)} kg CO₂ économisés
                                                                 </p>
                                                             </div>
-                                                        </div>
+                                                        </Link>
                                                         <Button
                                                             size="sm"
                                                             onClick={() => sendFriendRequest(user.id)}
