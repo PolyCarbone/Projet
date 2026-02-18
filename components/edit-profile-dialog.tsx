@@ -4,9 +4,10 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Loader2, X, Check } from "lucide-react"
-import Image from "next/image" // On utilise Image de Next.js comme dans l'onboarding
+import Image from "next/image"
 
-export type EditType = "username" | "email" | "password" | "banner" | "avatar" | "borderColor"| null
+// 1. On ajoute usernameColor
+export type EditType = "username" | "email" | "password" | "banner" | "avatar" | "borderColor" | "usernameColor" | null
 
 interface EditProfileDialogProps {
   isOpen: boolean
@@ -14,7 +15,7 @@ interface EditProfileDialogProps {
   type: EditType
   currentValue?: string
   userId: string
-  unlockedItems?: { id: string; imageUrl: string; name: string }[] 
+  // On n'a plus besoin de unlockedItems car tout est chargé dynamiquement maintenant
 }
 
 export function EditProfileDialog({ 
@@ -22,16 +23,17 @@ export function EditProfileDialog({
   onClose, 
   type, 
   currentValue = "", 
-  unlockedItems = [] 
 }: EditProfileDialogProps) {
   const [value, setValue] = useState(currentValue)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   
-  // États spécifiques pour les Avatars (comme dans l'onboarding)
+  // États pour les listes d'items
   const [avatars, setAvatars] = useState<{ id: string; imageUrl: string; name: string }[]>([])
   const [borders, setBorders] = useState<{ id: string; colorValue: string; name: string }[]>([])
-  const [isLoadingAvatars, setIsLoadingAvatars] = useState(false)
+  const [banners, setBanners] = useState<{ id: string; imageUrl: string; name: string }[]>([]) // <-- Nouveau
+  const [usernameColors, setUsernameColors] = useState<{ id: string; colorValue: string; name: string }[]>([]) // <-- Nouveau
+  
   const [isFetchingItems, setIsFetchingItems] = useState(false)
 
   // Reset et Fetching à l'ouverture
@@ -40,40 +42,38 @@ export function EditProfileDialog({
         setValue(currentValue)
         setError("")
         
-        // Si c'est le mode avatar, on va chercher la liste via l'API existante
+        // Routage des fetchs selon le type
         if (type === "avatar") fetchAvatars()
-        if (type === "borderColor") fetchBorders() // <-- Trigger fetch
+        if (type === "borderColor") fetchCosmetics("border", setBorders)
+        if (type === "banner") fetchCosmetics("banner", setBanners)         // <-- Nouveau
+        if (type === "usernameColor") fetchCosmetics("username_color", setUsernameColors) // <-- Nouveau
     }
   }, [isOpen, type, currentValue])
 
+  // Fetch spécifique pour l'onboarding (API différente)
   const fetchAvatars = async () => {
-      setIsLoadingAvatars(true)
+      setIsFetchingItems(true)
       try {
           const res = await fetch("/api/onboarding/avatar")
           if (res.ok) {
               const data = await res.json()
               setAvatars(data.avatars || [])
           }
-      } catch (err) {
-          console.error("Erreur chargement avatars", err)
-      } finally {
-          setIsLoadingAvatars(false)
-      }
+      } catch (err) { console.error(err) } 
+      finally { setIsFetchingItems(false) }
   }
 
-  const fetchBorders = async () => {
+  // Fetch générique pour les cosmétiques débloqués (Borders, Banners, Colors)
+  const fetchCosmetics = async (cosmeticType: string, setState: any) => {
       setIsFetchingItems(true)
       try {
-          const res = await fetch("/api/user/cosmetics/borders")
+          const res = await fetch(`/api/user/cosmetics/unlocked?type=${cosmeticType}`)
           if (res.ok) {
               const data = await res.json()
-              setBorders(data.borders || [])
+              setState(data || [])
           }
-      } catch (err) {
-          console.error(err)
-      } finally {
-          setIsFetchingItems(false)
-      }
+      } catch (err) { console.error(err) } 
+      finally { setIsFetchingItems(false) }
   }
 
   if (!isOpen) return null
@@ -86,17 +86,19 @@ export function EditProfileDialog({
     banner: { title: "Choisir une bannière", desc: "Sélectionnez parmi vos items débloqués." },
     avatar: { title: "Choisir un avatar", desc: "Changez votre identité visuelle." },
     borderColor: { title: "Couleur du contour", desc: "Personnalisez le cercle autour de votre avatar." },
+    usernameColor: { title: "Couleur du pseudo", desc: "Choisissez la couleur de votre nom." },
   }
   const currentConfig = type ? config[type] : { title: "", desc: "" }
 
   const handleSave = async () => {
     setIsLoading(true); setError("")
     
-    // Déterminer la bonne clé pour l'API
+    // Mapping Type -> Clé API
     let bodyKey = type as string;
     if (type === "banner") bodyKey = "bannerId";
     if (type === "avatar") bodyKey = "avatarId";
-    if (type === "borderColor") bodyKey = "avatarBorderColor"; // <-- Important
+    if (type === "borderColor") bodyKey = "avatarBorderColor";
+    if (type === "usernameColor") bodyKey = "usernameColor"; // Assure-toi que ton API PATCH gère cette clé
 
     try {
       const res = await fetch("/api/user/profile", {
@@ -110,51 +112,45 @@ export function EditProfileDialog({
     finally { setIsLoading(false) }
   }
 
-// 3. Rendu de la sélection de couleur
-  const renderBorderSelection = () => {
+  // --- RENDU : COULEURS (Bordures & Pseudo) ---
+  const renderColorSelection = (items: any[], defaultItems: any[]) => {
     if (isFetchingItems) return <div className="flex justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-green-500" /></div>
 
-    // Couleurs par défaut si l'API ne renvoie rien (fallback)
-    const displayBorders = borders.length > 0 ? borders : [
-        { id: "default_1", colorValue: "#22c55e", name: "Vert Poly" }, // Green-500
-        { id: "default_2", colorValue: "#ffffff", name: "Blanc" },
-        { id: "default_3", colorValue: "#3b82f6", name: "Bleu" },
-        { id: "default_4", colorValue: "#ef4444", name: "Rouge" },
-        { id: "default_5", colorValue: "#eab308", name: "Jaune" },
-    ];
+    // Utilise les items débloqués OU les défauts si vide
+    const displayItems = items.length > 0 ? items : defaultItems;
 
     return (
         <div className="space-y-6">
              {/* Prévisualisation */}
              <div className="flex justify-center py-4">
-                <div 
-                    className="w-24 h-24 rounded-full bg-[#202020] flex items-center justify-center border-4 transition-all duration-300"
-                    style={{ borderColor: value || '#22c55e' }} // La couleur change en direct
-                >
-                    <span className="text-xs text-gray-500">Aperçu</span>
-                </div>
+                {type === "borderColor" ? (
+                    <div className="w-24 h-24 rounded-full bg-[#202020] flex items-center justify-center border-4 transition-all duration-300"
+                        style={{ borderColor: value || '#22c55e' }}>
+                        <span className="text-xs text-gray-500">Aperçu</span>
+                    </div>
+                ) : (
+                    <div className="text-3xl font-bold bg-[#202020] px-6 py-3 rounded-lg"
+                        style={{ color: value || '#ffffff' }}>
+                        Pseudo
+                    </div>
+                )}
              </div>
 
-             {/* Grille de couleurs */}
+             {/* Grille */}
              <div className="grid grid-cols-5 gap-4 px-2">
-                {displayBorders.map((border) => (
+                {displayItems.map((item) => (
                     <button
-                        key={border.id}
-                        onClick={() => setValue(border.colorValue)}
+                        key={item.id}
+                        onClick={() => setValue(item.colorValue)}
                         className={`group relative w-12 h-12 rounded-full overflow-hidden transition-all ${
-                            value === border.colorValue 
+                            value === item.colorValue 
                             ? "ring-2 ring-offset-2 ring-offset-[#121212] ring-white scale-110" 
                             : "hover:scale-110 opacity-80 hover:opacity-100"
                         }`}
-                        title={border.name}
+                        title={item.name}
                     >
-                        {/* La couleur */}
-                        <div 
-                            className="w-full h-full"
-                            style={{ backgroundColor: border.colorValue }}
-                        />
-                        {/* Checkmark si sélectionné */}
-                        {value === border.colorValue && (
+                        <div className="w-full h-full" style={{ backgroundColor: item.colorValue }} />
+                        {value === item.colorValue && (
                             <div className="absolute inset-0 flex items-center justify-center bg-black/20">
                                 <Check className="w-5 h-5 text-white drop-shadow-md" />
                             </div>
@@ -166,50 +162,47 @@ export function EditProfileDialog({
     )
   }
 
-  // --- RENDU DU CONTENU SPÉCIFIQUE AVATAR ---
-  const renderAvatarSelection = () => {
-    if (isLoadingAvatars) return <div className="flex justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-green-500" /></div>
+  // --- RENDU : BANNIÈRES ---
+  const renderBannerSelection = () => {
+    if (isFetchingItems) return <div className="flex justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-green-500" /></div>
+    
+    return (
+        <div className="grid grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-2">
+            {banners.length > 0 ? banners.map((item) => (
+            <div key={item.id} onClick={() => setValue(item.id)}
+                className={`relative cursor-pointer rounded-lg overflow-hidden border-2 aspect-video ${value === item.id ? 'border-green-500' : 'border-transparent hover:border-white/20'}`}
+            >
+                <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                {value === item.id && <div className="absolute inset-0 bg-green-500/20 flex items-center justify-center"><Check className="text-white"/></div>}
+            </div>
+            )) : <p className="text-gray-500 text-sm col-span-2 text-center py-4">Aucune bannière débloquée.</p>}
+        </div>
+    )
+  }
 
-    // On trouve l'image de l'avatar sélectionné pour la prévisualisation
+  // --- RENDU : AVATAR ---
+  const renderAvatarSelection = () => {
+    if (isFetchingItems) return <div className="flex justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-green-500" /></div>
     const selectedAvatarUrl = avatars.find(a => a.id === value)?.imageUrl || avatars[0]?.imageUrl
 
     return (
         <div className="space-y-6">
-             {/* 1. Prévisualisation (Gros Rond) */}
              <div className="flex justify-center">
                 <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white/10 shadow-xl bg-black/20">
                     {selectedAvatarUrl && (
-                        <Image 
-                            src={selectedAvatarUrl} 
-                            alt="Selected" 
-                            width={128} 
-                            height={128} 
-                            className="w-full h-full object-cover"
-                        />
+                        <Image src={selectedAvatarUrl} alt="Selected" width={128} height={128} className="w-full h-full object-cover" />
                     )}
                 </div>
              </div>
-
-             {/* 2. Grille de choix (Petits Ronds) */}
              <div className="grid grid-cols-4 sm:grid-cols-5 gap-3 max-h-[250px] overflow-y-auto p-1">
                 {avatars.map((avatar) => (
-                    <button
-                        key={avatar.id}
-                        onClick={() => setValue(avatar.id)}
+                    <button key={avatar.id} onClick={() => setValue(avatar.id)}
                         className={`relative aspect-square rounded-full overflow-hidden transition-transform ${
-                            value === avatar.id 
-                            ? "ring-4 ring-offset-2 ring-offset-[#121212] ring-green-500 scale-105" 
-                            : "hover:scale-105 ring-2 ring-white/10 hover:ring-white/30"
+                            value === avatar.id ? "ring-4 ring-offset-2 ring-offset-[#121212] ring-green-500 scale-105" : "hover:scale-105 ring-2 ring-white/10 hover:ring-white/30"
                         }`}
                         title={avatar.name}
                     >
-                        <Image 
-                            src={avatar.imageUrl} 
-                            alt={avatar.name} 
-                            width={80} 
-                            height={80} 
-                            className="w-full h-full object-cover"
-                        />
+                        <Image src={avatar.imageUrl} alt={avatar.name} width={80} height={80} className="w-full h-full object-cover" />
                     </button>
                 ))}
              </div>
@@ -217,19 +210,14 @@ export function EditProfileDialog({
     )
   }
 
-  // --- RENDU DU CONTENU SPÉCIFIQUE BANNIÈRE ---
-  const renderBannerSelection = () => (
-    <div className="grid grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-2">
-        {unlockedItems.length > 0 ? unlockedItems.map((item) => (
-        <div key={item.id} onClick={() => setValue(item.id)}
-            className={`relative cursor-pointer rounded-lg overflow-hidden border-2 aspect-video ${value === item.id ? 'border-green-500' : 'border-transparent hover:border-white/20'}`}
-        >
-            <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
-            {value === item.id && <div className="absolute inset-0 bg-green-500/20 flex items-center justify-center"><Check className="text-white"/></div>}
-        </div>
-        )) : <p className="text-gray-500 text-sm col-span-2 text-center py-4">Aucun élément disponible</p>}
-    </div>
-  )
+  // --- DÉFINITION DES COULEURS PAR DÉFAUT ---
+  const defaultColors = [
+        { id: "def_1", colorValue: "#22c55e", name: "Vert" },
+        { id: "def_2", colorValue: "#ffffff", name: "Blanc" },
+        { id: "def_3", colorValue: "#3b82f6", name: "Bleu" },
+        { id: "def_4", colorValue: "#ef4444", name: "Rouge" },
+        { id: "def_5", colorValue: "#eab308", name: "Jaune" },
+  ];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
@@ -249,8 +237,10 @@ export function EditProfileDialog({
         {/* Contenu Scrollable */}
         <div className="py-2 overflow-y-auto">
             {type === "avatar" ? renderAvatarSelection() : 
-             type === "borderColor" ? renderBorderSelection() :
-             type === "banner" ? renderBannerSelection() : (
+             type === "banner" ? renderBannerSelection() :
+             type === "borderColor" ? renderColorSelection(borders, defaultColors) :
+             type === "usernameColor" ? renderColorSelection(usernameColors, defaultColors) :
+             (
                 <Input 
                     value={value} onChange={(e) => setValue(e.target.value)} 
                     type={type === "password" ? "password" : "text"}

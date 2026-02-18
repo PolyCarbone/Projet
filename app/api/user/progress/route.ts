@@ -1,11 +1,19 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 export async function GET() {
-  const session = await auth.api.getSession();
-  if (!session?.user?.id) return new NextResponse("Unauthorized", { status: 401 });
-
+  const session = await auth.api.getSession({
+              headers: await headers(),
+          });
+  
+          if (!session?.user?.id) {
+              return NextResponse.json(
+                  { error: "Non authentifié" },
+                  { status: 401 }
+              );
+          }
   try {
     // 1. Récupérer les stats actuelles de l'utilisateur
     const user = await prisma.user.findUnique({

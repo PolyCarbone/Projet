@@ -43,9 +43,9 @@ export function CosmeticProgressCard() {
 
     const getIcon = (id: string) => {
         switch (id) {
-            case "referral": return <Users className="h-5 w-5 text-blue-400" />
-            case "streak": return <Flame className="h-5 w-5 text-orange-500" />
             case "co2_personal": return <Leaf className="h-5 w-5 text-green-500" />
+            case "streak": return <Flame className="h-5 w-5 text-orange-500" />
+            case "referral": return <Users className="h-5 w-5 text-blue-400" />
             default: return <Trophy className="h-5 w-5 text-yellow-500" />
         }
     }

@@ -1,11 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { Settings, Mail, Lock, User, CalendarDays, Captions, CircleUser } from "lucide-react"
+import { Settings, Mail, Lock, User, CalendarDays, ImageIcon, CircleUser, Palette } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { UserAvatar } from "@/components/user-avatar"
-import { ImageIcon } from "lucide-react"
 import { useIsMobile } from "@/hooks/use-mobile"
 import {
     DropdownMenu,
@@ -15,9 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { EditProfileDialog, EditType } from "./edit-profile-dialog"
 
-
 interface ProfileHeaderCardProps {
-    
     user: {
         username: string
         email?: string
@@ -30,28 +27,20 @@ interface ProfileHeaderCardProps {
         banner?: {
             id: string
             name: string
-            imageUrl: string |null
+            imageUrl: string | null
             colorValue?: string | null
         } | null
         avatarBorderColor?: string | null
+        usernameColor?: string | null // Ajout de la couleur du pseudo
         userId: string
     }
     isCurrentUser?: boolean
-    onEditEmail?: () => void
-    onEditPassword?: () => void
-    onEditUsername?: () => void
-    onEditAvatar?: () => void
-    onEditBanner?: () => void
+    // Les callbacks onEdit... ne sont plus nécessaires car tout est géré par le dialog
 }
 
 export function ProfileHeaderCard({
     user,
     isCurrentUser = false,
-    onEditEmail,
-    onEditPassword,
-    onEditUsername,
-    onEditAvatar,
-    onEditBanner,
 }: ProfileHeaderCardProps) {
     const [editingType, setEditingType] = useState<EditType>(null)
     const isMobile = useIsMobile()
@@ -63,17 +52,11 @@ export function ProfileHeaderCard({
             case "email": return user.email || ""
             case "banner": return user.banner?.id || ""
             case "avatar": return user.avatar?.id || ""
-            case "borderColor": return user.avatarBorderColor || "#22c55e" // Vert par défaut si null
+            case "borderColor": return user.avatarBorderColor || "#22c55e"
+            case "usernameColor": return user.usernameColor || "#ffffff" 
             default: return ""
         }
     }
-    // MOCK DATA : Dans la réalité, tu passeras user.unlockedBanners ici
-    // Tu devras probablement adapter tes props pour inclure les items débloqués
-    const myBanners = [
-        { id: "ban_1", name: "Forêt", imageUrl: "@public/images/banners/forest.jpg" },
-        { id: "ban_2", name: "Océan", imageUrl: "@public/images/banners/forest.jpg" },
-        // ...
-    ]
 
     const formatDate = (date: Date | string | undefined) => {
         if (!date) return "Date inconnue"
@@ -81,9 +64,9 @@ export function ProfileHeaderCard({
         return d.toLocaleDateString("fr-FR", { month: "short", year: "numeric" })
     }
 
-        return (
-            <>
-            <Card className="w-full overflow-hidden border-none relative  flex flex-col justify-end">
+    return (
+        <>
+            <Card className="w-full overflow-hidden border-none relative flex flex-col justify-end">
                 {/* 1. FOND TOTAL (Couleur ou Image) */}
                 <div 
                     className="absolute inset-0 z-0 transition-colors duration-500"
@@ -111,6 +94,9 @@ export function ProfileHeaderCard({
                                 <DropdownMenuItem onClick={() => setEditingType("username")}>
                                     <User className="mr-2 h-4 w-4" /> Modifier le pseudo
                                 </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setEditingType("usernameColor")}>
+                                    <Palette className="mr-2 h-4 w-4" /> Couleur du pseudo
+                                </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => setEditingType("email")}>
                                     <Mail className="mr-2 h-4 w-4" /> Modifier l'email
                                 </DropdownMenuItem>
@@ -130,10 +116,11 @@ export function ProfileHeaderCard({
                         </DropdownMenu>
                     </div>
                 )}
+
                 {/* 3. CONTENU : Avatar à gauche, Infos à droite, poussé vers le bas */}
                 <div className="relative z-10 mt-auto p-6 md:p-8 w-full">
                     <div className="flex flex-row items-center gap-6">
-                        {/* Avatar : Pas de bordure noire, on utilise un effet de verre pour le fond vert */}
+                        {/* Avatar */}
                         <div className="shrink-0 rounded-full">
                             <UserAvatar
                                 avatar={user.avatar}
@@ -146,7 +133,10 @@ export function ProfileHeaderCard({
 
                         {/* Informations à DROITE de l'avatar */}
                         <div className="flex flex-col gap-1">
-                            <h2 className="text-3xl md:text-5xl font-bold text-white drop-shadow-md">
+                            <h2 
+                                className="text-3xl md:text-5xl font-bold drop-shadow-md"
+                                style={{ color: user.usernameColor || '#ffffff' }} // Application de la couleur ici
+                            >
                                 {user.username}
                             </h2>
                             <div className="flex flex-col md:flex-row md:items-center gap-x-6 gap-y-1 text-white/90">
@@ -165,18 +155,15 @@ export function ProfileHeaderCard({
                     </div>
                 </div>
             </Card>
+
             <EditProfileDialog 
                 isOpen={!!editingType}
                 onClose={() => setEditingType(null)}
                 type={editingType}
                 userId={user.userId}
                 currentValue={getInitialValue()}
-                // Exemple de données mockées pour l'instant
-                unlockedItems={editingType === "banner" ? [
-                    { id: "1", name: "Forest", imageUrl: "@public/images/banners/forest.jpg" }
-                ] : []} 
+                // unlockedItems n'est plus nécessaire ici car chargé dynamiquement
             />
-
         </>
     )
 }
