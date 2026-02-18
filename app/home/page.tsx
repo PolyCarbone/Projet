@@ -136,13 +136,8 @@ export default function Home() {
             />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate">
-                {entry.name}
+                {entry.username}
               </p>
-              {entry.username && (
-                <p className="text-xs text-muted-foreground truncate">
-                  @{entry.username}
-                </p>
-              )}
             </div>
             <div className="flex items-center gap-1 text-green-600 dark:text-green-400 font-semibold text-sm whitespace-nowrap">
               {entry.totalCO2Saved.toFixed(1)} kg

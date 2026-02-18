@@ -72,7 +72,7 @@ const TopNavbar = () => {
     };
 
     return (
-        <section className="py-4 bg-primary">
+        <section className="py-4 bg-primary sticky top-0 z-50">
             <div className="container mx-auto">
                 {/* Desktop Menu */}
                 <nav className="hidden justify-between items-center lg:flex">
