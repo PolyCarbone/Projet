@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from "react"
 import { ProfileHeaderCard } from "@/components/profile-header-card"
-import { CarbonFootprintPieChart } from "@/components/carbon-footprint-pie-chart"
 import { CarbonFootprintBarChart } from "@/components/carbon-footprint-bar-chart"
 import { CarbonSavingsLineChart } from "@/components/carbon-savings-line-chart"
 import { UserStatsCards } from "@/components/user-stats-cards"
 import { useAuth } from "@/lib/auth-context"
 import { useUserProfile } from "@/lib/user-profile-context"
 import { Skeleton } from "@/components/ui/skeleton"
+import { CarbonFootprintPieChart } from "@/components/carbon-footprint-pie-chart"
 
 interface CarbonFootprintData {
     transport?: number | null
@@ -134,7 +134,7 @@ export default function ProfilePage() {
                                     onEditUsername={handleEditUsername}
                                 />
                             </div>
-                            <div className="px-4 pb-4 max-w-7xl mx-auto">
+                            <div>
                                 <CarbonSavingsLineChart
                                     data={carbonSavingsTimeline}
                                     isLoading={isLoadingTimeline}
@@ -146,11 +146,11 @@ export default function ProfilePage() {
                                     isLoading={isLoadingStats}
                                 />
                             </div>
-                            <div className="px-4 pb-8 max-w-7xl mx-auto">
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                    <CarbonFootprintPieChart data={carbonFootprint} />
-                                    <CarbonFootprintBarChart data={carbonFootprint} />
-                                </div>
+                            <div className="px-4 pb-4 max-w-7xl mx-auto">
+                                <CarbonFootprintBarChart data={carbonFootprint} />
+                            </div>
+                            <div className="px-4 pb-4 max-w-7xl mx-auto">
+                                <CarbonFootprintPieChart data={carbonFootprint} />
                             </div>
                         </>
                     ) : (
