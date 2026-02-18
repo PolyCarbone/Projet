@@ -118,7 +118,7 @@ export default function ProfilePage() {
                         </div>
                     ) : session?.user && profile ? (
                         <>
-                            <div className="px-4 pt-8 pb-4 max-w-7xl mx-auto">
+                            <div className="px-4 pt-4 pb-4 max-w-7xl mx-auto">
                                 <ProfileHeaderCard
                                     user={{
                                         username: profile.username || "utilisateur",
