@@ -28,7 +28,7 @@ export default function Home() {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex justify-center">
-            <Link href="/evaluation">
+            <Link href="/auth/portal?mode=signup">
               <Button size="lg" variant="secondary" className="text-base px-8 py-8 whitespace-normal shadow-md">
                 S'inscrire et commencer le bilan carbone
               </Button>
