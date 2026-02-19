@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Users, X } from "lucide-react"
 
 interface CreateTeamProps {
@@ -48,9 +48,9 @@ export function CreateTeam({ onCreateTeam }: CreateTeamProps) {
         return (
             <Card className="p-6 text-center">
                 <div className="space-y-4">
-                    <Users className="w-12 h-12 mx-auto text-blue-500" />
+                    <Users className="w-12 h-12 mx-auto text-primary" />
                     <div>
-                        <h3 className="text-xl font-semibold mb-2">
+                        <h3 className="text-xl mb-2 text-foreground">
                             Créer une équipe
                         </h3>
                         <p className="text-muted-foreground mb-4">
@@ -60,7 +60,7 @@ export function CreateTeam({ onCreateTeam }: CreateTeamProps) {
                     </div>
                     <Button
                         size="lg"
-                        className="w-full bg-blue-600 hover:bg-blue-700"
+                        className="w-full"
                         onClick={() => setIsOpen(true)}
                     >
                         Créer une équipe
@@ -72,8 +72,8 @@ export function CreateTeam({ onCreateTeam }: CreateTeamProps) {
 
     return (
         <Card className="p-6">
-            <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold">Créer une équipe</h2>
+            <div className="flex items-center justify-between">
+                <h2 className="text-2xl">Créer une équipe</h2>
                 <button
                     onClick={() => setIsOpen(false)}
                     className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
@@ -83,38 +83,35 @@ export function CreateTeam({ onCreateTeam }: CreateTeamProps) {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                    <Label htmlFor="teamName">Nom de l'équipe *</Label>
+                <Field>
+                    <FieldLabel htmlFor="teamName">Nom de l'équipe *</FieldLabel>
                     <Input
                         id="teamName"
-                        placeholder="ex: Eco Warriors"
+                        placeholder="Eco Warriors"
                         value={teamName}
                         onChange={(e) => setTeamName(e.target.value)}
                         disabled={loading}
                     />
-                </div>
-
-                <div>
-                    <Label htmlFor="teamDescription">Description</Label>
+                </Field>
+                <Field>
+                    <FieldLabel htmlFor="teamDescription">Description</FieldLabel>
                     <Input
                         id="teamDescription"
-                        placeholder="ex: Une équipe dédiée à réduire son empreinte carbone"
+                        placeholder="Une description de l'équipe"
                         value={teamDescription}
                         onChange={(e) => setTeamDescription(e.target.value)}
                         disabled={loading}
                     />
-                </div>
+                </Field>
 
                 {error && (
-                    <div className="p-3 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-100 rounded">
-                        {error}
-                    </div>
+                    <FieldError>{error}</FieldError>
                 )}
 
-                <div className="flex gap-2 pt-4">
+                <div className="flex gap-2 pt-2">
                     <Button
                         type="submit"
-                        className="flex-1 bg-blue-600 hover:bg-blue-700"
+                        className="flex-1"
                         disabled={loading}
                     >
                         {loading ? "Création..." : "Créer l'équipe"}
