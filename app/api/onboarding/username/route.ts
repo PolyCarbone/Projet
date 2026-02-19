@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { headers } from "next/headers";
 
-export async function POST(request: NextRequest, onBoardingStep: number) {
+export async function POST(request: NextRequest) {
     try {
         const session = await auth.api.getSession({
             headers: await headers(),
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest, onBoardingStep: number) {
             where: { id: session.user.id },
             data: {
                 username,
-                onboardingStep: onBoardingStep, // Passer à l'étape avatar
+                onboardingStep: 2, // Passer à l'étape avatar
             }
         });
 

@@ -111,6 +111,8 @@ export default function ProfilePage() {
                                         avatar: profile.avatar,
                                         avatarBorderColor: profile.avatarBorderColor,
                                         userId: session.user.id,
+                                        usernameColor: profile.usernameColor,
+                                        banner: profile.banner,
                                     }}
                                     isCurrentUser={true}
                                 />

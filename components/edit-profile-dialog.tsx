@@ -15,7 +15,6 @@ interface EditProfileDialogProps {
   type: EditType
   currentValue?: string
   userId: string
-  // On n'a plus besoin de unlockedItems car tout est chargé dynamiquement maintenant
 }
 
 export function EditProfileDialog({ 
@@ -31,8 +30,8 @@ export function EditProfileDialog({
   // États pour les listes d'items
   const [avatars, setAvatars] = useState<{ id: string; imageUrl: string; name: string }[]>([])
   const [borders, setBorders] = useState<{ id: string; colorValue: string; name: string }[]>([])
-  const [banners, setBanners] = useState<{ id: string; imageUrl: string; name: string }[]>([]) // <-- Nouveau
-  const [usernameColors, setUsernameColors] = useState<{ id: string; colorValue: string; name: string }[]>([]) // <-- Nouveau
+  const [banners, setBanners] = useState<{ id: string; imageUrl: string; name: string }[]>([])
+  const [usernameColors, setUsernameColors] = useState<{ id: string; colorValue: string; name: string }[]>([])
   
   const [isFetchingItems, setIsFetchingItems] = useState(false)
 
@@ -118,6 +117,7 @@ export function EditProfileDialog({
 
     // Utilise les items débloqués OU les défauts si vide
     const displayItems = items.length > 0 ? items : defaultItems;
+    
 
     return (
         <div className="space-y-6">
@@ -210,15 +210,14 @@ export function EditProfileDialog({
     )
   }
 
-  // --- DÉFINITION DES COULEURS PAR DÉFAUT ---
-  const defaultColors = [
-        { id: "def_1", colorValue: "#22c55e", name: "Vert" },
-        { id: "def_2", colorValue: "#ffffff", name: "Blanc" },
-        { id: "def_3", colorValue: "#3b82f6", name: "Bleu" },
-        { id: "def_4", colorValue: "#ef4444", name: "Rouge" },
-        { id: "def_5", colorValue: "#eab308", name: "Jaune" },
+    // --- DÉFINITION DES COULEURS PAR DÉFAUT ---
+    const defaultUsernameColors = [
+        { id: "username_color-pseudo-blanc", colorValue: "#f2f2f2", name: "Pseudo Blanc" },
+        { id: "username_color-pseudo-noir", colorValue: "#181818", name: "Pseudo Noir" },
+    ];    
+    const defaultBorders = [
+        { id: "border-bordure-verte", colorValue: "#22c55e", name: "Bordure Verte" },
   ];
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
       <div className="w-full max-w-lg rounded-xl border border-white/10 bg-[#121212] p-6 shadow-2xl animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
@@ -238,8 +237,8 @@ export function EditProfileDialog({
         <div className="py-2 overflow-y-auto">
             {type === "avatar" ? renderAvatarSelection() : 
              type === "banner" ? renderBannerSelection() :
-             type === "borderColor" ? renderColorSelection(borders, defaultColors) :
-             type === "usernameColor" ? renderColorSelection(usernameColors, defaultColors) :
+             type === "borderColor" ? renderColorSelection(borders, defaultBorders) :
+             type === "usernameColor" ? renderColorSelection(usernameColors, defaultUsernameColors) :
              (
                 <Input 
                     value={value} onChange={(e) => setValue(e.target.value)} 
