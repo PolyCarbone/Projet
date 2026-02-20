@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react";
-import { Menu, CircleUserRound, UsersRound, LogOut, SquareCheckBig, FlaskConical } from "lucide-react";
+import { Menu, CircleUserRound, UsersRound, LogOut, SquareCheckBig, FlaskConical, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { useAuth } from "@/lib/auth-context";
@@ -59,6 +59,8 @@ const TopNavbar = () => {
         { title: "Mon profil", url: "/profile", icon: <CircleUserRound className="size-4 text-white/80" /> },
         { title: "Mon équipe", url: "/team", icon: <UsersRound className="size-4 text-white/80" /> },
         { title: "Refaire un bilan carbone", url: "/evaluation", icon: <FlaskConical className="size-4 text-white/80" /> },
+        ...(profile?.isAdmin ? [{ title: "Dashboard Admin", url: "/adminDashboard", icon: <ShieldCheck className="size-4 text-white/80" /> }] : []),
+
     ];
 
     const auth = {

@@ -132,5 +132,34 @@ export const auth = betterAuth({
 
     advanced: {
         cookiePrefix: "polycarbone"
-    }
+    },
+
+    databaseHooks: {
+        session: {
+            create: {
+                // Capture la toute première connexion
+                after: async (session) => {
+                    await prisma.connection.create({
+                        data: {
+                            userId: session.userId,
+                            ipAddress: session.ipAddress ?? null,
+                            userAgent: session.userAgent ?? null,
+                        },
+                    });
+                },
+            },
+            update: {
+                // Capture chaque retour après +1 jour d'inactivité
+                after: async (session) => {
+                    await prisma.connection.create({
+                        data: {
+                            userId: session.userId,
+                            ipAddress: session.ipAddress ?? null,
+                            userAgent: session.userAgent ?? null,
+                        },
+                    });
+                },
+            },
+        },
+    },
 });

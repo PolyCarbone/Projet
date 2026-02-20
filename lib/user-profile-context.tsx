@@ -16,6 +16,7 @@ interface UserProfile {
         colorValue: string | null;
     } | null;
     createdAt: Date | string
+    isAdmin?: boolean
     avatar?: {
         id: string
         name: string
