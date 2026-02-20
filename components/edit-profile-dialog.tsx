@@ -59,27 +59,14 @@ export function EditProfileDialog({
             setUsernameAvailable(null)
 
             // Routage des fetchs selon le type
-            if (type === "avatar") fetchAvatars()
+            if (type === "avatar") fetchCosmetics("avatar", setAvatars)
             if (type === "borderColor") fetchCosmetics("border", setBorders)
             if (type === "banner") fetchCosmetics("banner", setBanners)
             if (type === "usernameColor") fetchCosmetics("username_color", setUsernameColors)
         }
     }, [isOpen, type, currentValue])
 
-    // Fetch spécifique pour l'onboarding (API différente)
-    const fetchAvatars = async () => {
-        setIsFetchingItems(true)
-        try {
-            const res = await fetch("/api/onboarding/avatar")
-            if (res.ok) {
-                const data = await res.json()
-                setAvatars(data.avatars || [])
-            }
-        } catch (err) { console.error(err) }
-        finally { setIsFetchingItems(false) }
-    }
-
-    // Fetch générique pour les cosmétiques débloqués (Borders, Banners, Colors)
+    // Fetch générique pour les cosmétiques débloqués (Avatars, Borders, Banners, Colors)
     const fetchCosmetics = async (cosmeticType: string, setState: (items: any[]) => void) => {
         setIsFetchingItems(true)
         try {
@@ -505,7 +492,7 @@ export function EditProfileDialog({
 
                 {/* Scroll horizontal des avatars */}
                 <ScrollArea className="w-full">
-                    <div className="flex gap-3 pb-4">
+                    <div className="flex gap-3 pb-6 pt-2 pr-2">
                         {avatars.map((avatar) => (
                             <button
                                 key={avatar.id}
