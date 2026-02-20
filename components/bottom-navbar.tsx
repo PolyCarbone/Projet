@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { UserAvatar } from "@/components/user-avatar"
 import { useUserProfile } from "@/lib/user-profile-context";
+import { useAuth } from "@/lib/auth-context";
 
 interface BottomNavProps {
     children: React.ReactNode
@@ -14,6 +15,7 @@ interface BottomNavProps {
 export function BottomNavbar({ children }: BottomNavProps) {
     const pathname = usePathname()
     const { profile } = useUserProfile()
+    const { session } = useAuth()
 
     const navItems = [
         {
@@ -39,14 +41,14 @@ export function BottomNavbar({ children }: BottomNavProps) {
     ]
 
     return (
-        <>
+        <div className="flex flex-col flex-1 min-h-0">
             {/* Main content with padding for mobile bottom nav */}
-            <div className="pb-16 md:pb-0">
+            <div className={session ? "pb-16 md:pb-0 flex-1 min-h-0 overflow-auto" : "flex-1 min-h-0 overflow-auto"}>
                 {children}
             </div>
 
-            {/* Bottom navigation - only visible on mobile */}
-            <nav className="fixed bottom-0 left-0 right-0 border-t bg-background md:hidden z-50">
+            {/* Bottom navigation - only visible on mobile when logged in */}
+            {session && <nav className="fixed bottom-0 left-0 right-0 border-t bg-background md:hidden z-50">
                 <div className="grid grid-cols-5 h-16">
                     {navItems.map((item) => {
                         const Icon = item.icon
@@ -105,7 +107,7 @@ export function BottomNavbar({ children }: BottomNavProps) {
                         </span>
                     </Link>
                 </div>
-            </nav>
-        </>
+            </nav>}
+        </div>
     )
 }

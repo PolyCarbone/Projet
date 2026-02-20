@@ -2,12 +2,11 @@
 
 import { useState, useEffect } from "react"
 import { ChallengeCard } from "@/components/challenge-card"
-import { ChallengeFilters } from "@/components/challenge-filters"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from "sonner"
-import { Leaf, Trophy, TrendingUp, Target } from "lucide-react"
+import { Trophy, Dices, Loader2, Calendar, CheckCircle2, X, ChevronDown } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 interface Challenge {
     id: string
@@ -32,69 +31,54 @@ interface Challenge {
     } | null
 }
 
+const DAILY_COUNT = 3
+const SHOW_MORE_STEP = 2
+
 export default function ChallengesPage() {
     const [challenges, setChallenges] = useState<Challenge[]>([])
     const [loading, setLoading] = useState(true)
-    const [selectedType, setSelectedType] = useState<string | null>(null)
-    const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
-    const [selectedStatus, setSelectedStatus] = useState<string | null>(null)
-    const [stats, setStats] = useState({
-        active: 0,
-        completed: 0,
-        totalCO2Saved: 0,
-    })
+    const [rerollingId, setRerollingId] = useState<string | null>(null)
+    const [showCompleted, setShowCompleted] = useState(false)
+    const [visibleEventCount, setVisibleEventCount] = useState(SHOW_MORE_STEP)
+    const [visibleAnnualCount, setVisibleAnnualCount] = useState(SHOW_MORE_STEP)
 
     useEffect(() => {
         loadChallenges()
-    }, [selectedType, selectedCategory, selectedStatus])
+    }, [])
 
     const loadChallenges = async () => {
         try {
             setLoading(true)
-            const params = new URLSearchParams()
-            if (selectedType) params.append('type', selectedType)
-            if (selectedCategory) params.append('category', selectedCategory)
-            if (selectedStatus) params.append('status', selectedStatus)
-
-            const response = await fetch(`/api/challenges?${params}`)
+            const response = await fetch('/api/challenges')
             if (!response.ok) throw new Error('Erreur de chargement')
 
             const data = await response.json()
-            setChallenges(data.challenges)
+            const all: Challenge[] = data.challenges
 
-            // Calculer les stats
-            const active = data.challenges.filter((c: Challenge) => c.userStatus?.status === 'active').length
-            const completed = data.challenges.filter((c: Challenge) => c.userStatus?.status === 'completed').length
-            const totalCO2 = data.challenges
-                .filter((c: Challenge) => c.userStatus?.status === 'completed')
-                .reduce((sum: number, c: Challenge) => sum + (c.userStatus?.co2Saved || 0), 0)
-
-            setStats({ active, completed, totalCO2Saved: totalCO2 })
+            // Auto-accepter des défis quotidiens si pas encore 3 actifs
+            const activeDailies = all.filter(c => c.type === 'daily' && c.userStatus?.status === 'active')
+            const needed = DAILY_COUNT - activeDailies.length
+            if (needed > 0) {
+                const available = all.filter(c => c.type === 'daily' && (!c.userStatus || c.userStatus.status === 'skipped' || c.userStatus.status === 'changed'))
+                const shuffled = available.sort(() => Math.random() - 0.5).slice(0, needed)
+                for (const c of shuffled) {
+                    await fetch('/api/challenges/accept', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ challengeId: c.id }),
+                    })
+                }
+                const refreshed = await fetch('/api/challenges')
+                const refreshedData = await refreshed.json()
+                setChallenges(refreshedData.challenges)
+            } else {
+                setChallenges(all)
+            }
         } catch (error) {
             console.error('Erreur:', error)
             toast.error('Erreur lors du chargement des défis')
         } finally {
             setLoading(false)
-        }
-    }
-
-    const handleAccept = async (challengeId: string) => {
-        try {
-            const response = await fetch('/api/challenges/accept', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ challengeId }),
-            })
-
-            if (!response.ok) {
-                const error = await response.json()
-                throw new Error(error.error || 'Erreur')
-            }
-
-            toast.success('Défi accepté !')
-            loadChallenges()
-        } catch (error: any) {
-            toast.error(error.message || 'Erreur lors de l\'acceptation du défi')
         }
     }
 
@@ -105,12 +89,10 @@ export default function ChallengesPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userChallengeId }),
             })
-
             if (!response.ok) {
                 const error = await response.json()
                 throw new Error(error.error || 'Erreur')
             }
-
             const data = await response.json()
             toast.success(`Défi complété ! +${data.totalCO2Saved} kg CO₂ économisés 🎉`)
             loadChallenges()
@@ -119,224 +101,268 @@ export default function ChallengesPage() {
         }
     }
 
-    const handleSkip = async (userChallengeId: string) => {
+    /** Accept then complete in one step (for event/annual challenges not yet accepted) */
+    const handleAcceptAndComplete = async (challenge: Challenge) => {
         try {
-            const response = await fetch('/api/challenges/skip', {
+            let userChallengeId: string
+
+            if (challenge.userStatus?.status === 'active') {
+                userChallengeId = challenge.userStatus.id
+            } else {
+                // First accept the challenge
+                const acceptResponse = await fetch('/api/challenges/accept', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ challengeId: challenge.id }),
+                })
+                if (!acceptResponse.ok) {
+                    const error = await acceptResponse.json()
+                    throw new Error(error.error || 'Erreur')
+                }
+                const acceptData = await acceptResponse.json()
+                userChallengeId = acceptData.userChallenge.id
+            }
+
+            // Then complete
+            const response = await fetch('/api/challenges/complete', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userChallengeId }),
             })
-
             if (!response.ok) {
                 const error = await response.json()
                 throw new Error(error.error || 'Erreur')
             }
-
-            toast.success('Défi passé')
+            const data = await response.json()
+            toast.success(`Défi complété ! +${data.totalCO2Saved} kg CO₂ économisés 🎉`)
             loadChallenges()
         } catch (error: any) {
-            toast.error(error.message || 'Erreur')
+            toast.error(error.message || 'Erreur lors de la complétion du défi')
         }
     }
 
-    const handleChange = async (currentUserChallengeId: string) => {
-        // Pour l'instant, simple skip - à améliorer avec une modale de sélection
+    const handleReroll = async (userChallengeId: string) => {
         try {
-            const availableChallenges = challenges.filter(
-                c => !c.userStatus || c.userStatus.status === 'skipped'
-            )
-
-            if (availableChallenges.length === 0) {
-                toast.error('Aucun défi disponible pour le changement')
-                return
-            }
-
-            const randomChallenge = availableChallenges[Math.floor(Math.random() * availableChallenges.length)]
-
-            const response = await fetch('/api/challenges/change', {
+            setRerollingId(userChallengeId)
+            const response = await fetch('/api/challenges/reroll', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    currentUserChallengeId,
-                    newChallengeId: randomChallenge.id,
-                }),
+                body: JSON.stringify({ userChallengeId }),
             })
-
             if (!response.ok) {
                 const error = await response.json()
                 throw new Error(error.error || 'Erreur')
             }
-
             const data = await response.json()
-            toast.success(`Nouveau défi : ${data.newUserChallenge.challenge.title}`)
+            if (data.newUserChallenges?.length > 0) {
+                toast.success(`Nouveau défi : ${data.newUserChallenges[0].challenge.title}`)
+            }
             loadChallenges()
         } catch (error: any) {
-            toast.error(error.message || 'Erreur lors du changement de défi')
+            toast.error(error.message || 'Erreur lors du re-roll')
+        } finally {
+            setRerollingId(null)
         }
     }
 
-    const activeChallenges = challenges.filter(c => c.userStatus?.status === 'active')
-    const availableChallenges = challenges.filter(c => !c.userStatus || c.userStatus.status === 'skipped')
-    const completedChallenges = challenges.filter(c => c.userStatus?.status === 'completed')
+    // Daily (active only)
+    const dailyChallenges = challenges.filter(c => c.type === 'daily' && c.userStatus?.status === 'active')
+
+    // Events & Annual: exclude completed from the choice list
+    const availableEventChallenges = challenges.filter(c =>
+        c.type === 'event' && c.userStatus?.status !== 'completed'
+    )
+    const availableAnnualChallenges = challenges.filter(c =>
+        c.type === 'annual' && c.userStatus?.status !== 'completed'
+    )
+
+    // All completed
+    const allCompleted = challenges.filter(c => c.userStatus?.status === 'completed')
+
+    // Visible slices
+    const visibleEvents = availableEventChallenges.slice(0, visibleEventCount)
+    const visibleAnnuals = availableAnnualChallenges.slice(0, visibleAnnualCount)
 
     return (
-        <div className="relative min-h-screen pb-20">
-            <div className="container mx-auto px-4 py-8 max-w-7xl">
-                {/* En-tête */}
-                <div className="mb-8">
-                    <h1 className="text-4xl font-bold mb-2">Défis Écologiques</h1>
-                    <p className="text-muted-foreground">
-                        Relevez des défis quotidiens, annuels ou événementiels pour réduire votre empreinte carbone
-                    </p>
+        <div className="mt-4 space-y-8">
+
+            {/* Défis du jour */}
+            <section>
+                <div className="flex items-center justify-between mb-3 px-4">
+                    <h2 className="text-lg font-semibold flex items-center gap-2">
+                        <Dices className="size-4" />
+                        Défis du jour
+                    </h2>
                 </div>
 
-                {/* Statistiques */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between pb-2">
-                            <CardTitle className="text-sm font-medium">Défis en cours</CardTitle>
-                            <Target className="size-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{stats.active}</div>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between pb-2">
-                            <CardTitle className="text-sm font-medium">Défis complétés</CardTitle>
-                            <Trophy className="size-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{stats.completed}</div>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between pb-2">
-                            <CardTitle className="text-sm font-medium">CO₂ économisé</CardTitle>
-                            <Leaf className="size-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                                {stats.totalCO2Saved.toFixed(1)} kg
+                {loading ? (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 px-4">
+                        {[...Array(DAILY_COUNT)].map((_, i) => <Skeleton key={i} className="h-36" />)}
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 px-4">
+                        {dailyChallenges.map((challenge) => (
+                            <div key={challenge.id} className="relative">
+                                {rerollingId === challenge.userStatus?.id && (
+                                    <div className="absolute inset-0 bg-background/60 rounded-lg flex items-center justify-center z-10">
+                                        <Loader2 className="size-5 animate-spin" />
+                                    </div>
+                                )}
+                                <ChallengeCard
+                                    challenge={challenge}
+                                    onComplete={() => handleComplete(challenge.userStatus!.id)}
+                                    onReroll={() => handleReroll(challenge.userStatus!.id)}
+                                />
                             </div>
+                        ))}
+                        {dailyChallenges.length < DAILY_COUNT && (
+                            Array.from({ length: DAILY_COUNT - dailyChallenges.length }).map((_, i) => (
+                                <Skeleton key={`placeholder-${i}`} className="h-36 opacity-40" />
+                            ))
+                        )}
+                    </div>
+                )}
+            </section>
+
+            {/* Défis d'événement */}
+            <section>
+                <h2 className="text-lg font-semibold mb-3 flex items-center gap-2 px-4">
+                    <Calendar className="size-4" />
+                    Défis d&apos;événement
+                </h2>
+
+                {loading ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 px-4">
+                        {[...Array(2)].map((_, i) => <Skeleton key={i} className="h-36" />)}
+                    </div>
+                ) : availableEventChallenges.length === 0 ? (
+                    <Card className="mx-4">
+                        <CardContent className="flex flex-col items-center justify-center py-8">
+                            <Calendar className="size-8 text-muted-foreground mb-2" />
+                            <p className="text-muted-foreground text-center text-xs">Aucun événement en cours.</p>
                         </CardContent>
                     </Card>
+                ) : (
+                    <div className="space-y-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 px-4">
+                            {visibleEvents.map((challenge) => (
+                                <ChallengeCard
+                                    key={challenge.id}
+                                    challenge={challenge}
+                                    onComplete={() => handleAcceptAndComplete(challenge)}
+                                />
+                            ))}
+                        </div>
+                        {visibleEventCount < availableEventChallenges.length && (
+                            <div className="flex justify-center">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-xs gap-1"
+                                    onClick={() => setVisibleEventCount(prev => prev + SHOW_MORE_STEP)}
+                                >
+                                    <ChevronDown className="size-3" />
+                                    Afficher plus
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </section>
+
+            {/* Défis annuels */}
+            <section>
+                <h2 className="text-lg font-semibold mb-3 flex items-center gap-2 px-4">
+                    <Trophy className="size-4" />
+                    Défis annuels
+                </h2>
+
+                {loading ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 px-4">
+                        {[...Array(2)].map((_, i) => <Skeleton key={i} className="h-36" />)}
+                    </div>
+                ) : availableAnnualChallenges.length === 0 ? (
+                    <Card className="mx-4">
+                        <CardContent className="flex flex-col items-center justify-center py-8">
+                            <Trophy className="size-8 text-muted-foreground mb-2" />
+                            <p className="text-muted-foreground text-center text-xs">Tous les défis annuels ont été complétés !</p>
+                        </CardContent>
+                    </Card>
+                ) : (
+                    <div className="space-y-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 px-4">
+                            {visibleAnnuals.map((challenge) => (
+                                <ChallengeCard
+                                    key={challenge.id}
+                                    challenge={challenge}
+                                    onComplete={() => handleAcceptAndComplete(challenge)}
+                                />
+                            ))}
+                        </div>
+                        {visibleAnnualCount < availableAnnualChallenges.length && (
+                            <div className="flex justify-center">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-xs gap-1"
+                                    onClick={() => setVisibleAnnualCount(prev => prev + SHOW_MORE_STEP)}
+                                >
+                                    <ChevronDown className="size-3" />
+                                    Afficher plus
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </section>
+
+            {/* Bouton défis complétés */}
+            {allCompleted.length > 0 && (
+                <div className="flex justify-center pb-4">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2 text-xs"
+                        onClick={() => setShowCompleted(true)}
+                    >
+                        <CheckCircle2 className="size-3 text-green-600" />
+                        Voir les défis complétés ({allCompleted.length})
+                    </Button>
                 </div>
+            )}
 
-                {/* Filtres */}
-                <Card className="mb-8">
-                    <CardHeader>
-                        <CardTitle>Filtres</CardTitle>
-                        <CardDescription>Filtrez les défis par type, catégorie ou statut</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <ChallengeFilters
-                            selectedType={selectedType}
-                            selectedCategory={selectedCategory}
-                            selectedStatus={selectedStatus}
-                            onTypeChange={setSelectedType}
-                            onCategoryChange={setSelectedCategory}
-                            onStatusChange={setSelectedStatus}
-                        />
-                    </CardContent>
-                </Card>
-
-                {/* Liste des défis */}
-                <Tabs defaultValue="active" className="w-full">
-                    <TabsList className="grid w-full grid-cols-3">
-                        <TabsTrigger value="active">En cours ({activeChallenges.length})</TabsTrigger>
-                        <TabsTrigger value="available">Disponibles ({availableChallenges.length})</TabsTrigger>
-                        <TabsTrigger value="completed">Complétés ({completedChallenges.length})</TabsTrigger>
-                    </TabsList>
-
-                    <TabsContent value="active" className="mt-6">
-                        {loading ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {[...Array(6)].map((_, i) => (
-                                    <Skeleton key={i} className="h-64" />
-                                ))}
-                            </div>
-                        ) : activeChallenges.length === 0 ? (
-                            <Card>
-                                <CardContent className="flex flex-col items-center justify-center py-12">
-                                    <Target className="size-12 text-muted-foreground mb-4" />
-                                    <p className="text-muted-foreground text-center">
-                                        Aucun défi en cours. Commencez par accepter un défi !
-                                    </p>
-                                </CardContent>
-                            </Card>
-                        ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {activeChallenges.map((challenge) => (
-                                    <ChallengeCard
-                                        key={challenge.id}
-                                        challenge={challenge}
-                                        onComplete={() => handleComplete(challenge.userStatus!.id)}
-                                        onSkip={() => handleSkip(challenge.userStatus!.id)}
-                                        onChange={() => handleChange(challenge.userStatus!.id)}
-                                    />
-                                ))}
-                            </div>
-                        )}
-                    </TabsContent>
-
-                    <TabsContent value="available" className="mt-6">
-                        {loading ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {[...Array(6)].map((_, i) => (
-                                    <Skeleton key={i} className="h-64" />
-                                ))}
-                            </div>
-                        ) : availableChallenges.length === 0 ? (
-                            <Card>
-                                <CardContent className="flex flex-col items-center justify-center py-12">
-                                    <TrendingUp className="size-12 text-muted-foreground mb-4" />
-                                    <p className="text-muted-foreground text-center">
-                                        Tous les défis ont été acceptés ou complétés !
-                                    </p>
-                                </CardContent>
-                            </Card>
-                        ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {availableChallenges.map((challenge) => (
-                                    <ChallengeCard
-                                        key={challenge.id}
-                                        challenge={challenge}
-                                        onAccept={() => handleAccept(challenge.id)}
-                                    />
-                                ))}
-                            </div>
-                        )}
-                    </TabsContent>
-
-                    <TabsContent value="completed" className="mt-6">
-                        {loading ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {[...Array(6)].map((_, i) => (
-                                    <Skeleton key={i} className="h-64" />
-                                ))}
-                            </div>
-                        ) : completedChallenges.length === 0 ? (
-                            <Card>
-                                <CardContent className="flex flex-col items-center justify-center py-12">
-                                    <Trophy className="size-12 text-muted-foreground mb-4" />
-                                    <p className="text-muted-foreground text-center">
-                                        Aucun défi complété pour le moment. Relevez votre premier défi !
-                                    </p>
-                                </CardContent>
-                            </Card>
-                        ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {completedChallenges.map((challenge) => (
+            {/* Modal défis complétés */}
+            {showCompleted && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+                    onClick={() => setShowCompleted(false)}
+                >
+                    <div
+                        className="bg-background rounded-xl shadow-xl w-full max-w-4xl max-h-[85vh] flex flex-col"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div className="flex items-center justify-between px-5 py-3 border-b">
+                            <h2 className="text-base font-semibold flex items-center gap-2">
+                                <CheckCircle2 className="size-4 text-green-600" />
+                                Défis complétés ({allCompleted.length})
+                            </h2>
+                            <button
+                                onClick={() => setShowCompleted(false)}
+                                className="text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                                <X className="size-4" />
+                            </button>
+                        </div>
+                        <div className="overflow-y-auto p-5">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                {allCompleted.map((challenge) => (
                                     <ChallengeCard key={challenge.id} challenge={challenge} />
                                 ))}
                             </div>
-                        )}
-                    </TabsContent>
-                </Tabs>
-            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

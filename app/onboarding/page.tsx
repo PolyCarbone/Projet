@@ -6,10 +6,12 @@ import { authClient } from "@/lib/auth-client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft, ArrowRight, Check, Loader2, LogOut, Mail, Maximize2, Minimize2 } from "lucide-react"
+import { ArrowLeft, ArrowRight, Check, Leaf, Loader2, LogOut, Mail, Maximize2, Minimize2 } from "lucide-react"
 import Image from "next/image"
+import { Logo } from "@/components/logo"
+import { toast } from "sonner"
 
-type OnboardingStep = "email-verification" | "username" | "avatar" | "carbon-test"
+type OnboardingStep = "email-verification" | "username" | "avatar" | "carbon-intro" | "carbon-test"
 
 interface Avatar {
     id: string
@@ -44,9 +46,6 @@ export default function OnboardingPage() {
 
     // Submission state
     const [isSubmitting, setIsSubmitting] = useState(false)
-
-    // Carbon test state
-    const [isFullscreen, setIsFullscreen] = useState(false)
 
     useEffect(() => {
         fetchUserData()
@@ -116,15 +115,15 @@ export default function OnboardingPage() {
 
                 if (response.ok) {
                     // Rediriger vers le profil après l'onboarding
-                    alert("🎉 Félicitations ! Votre bilan carbone a été enregistré. Bienvenue sur PolyCarbone !")
+                    toast.success("Félicitations ! Votre bilan carbone a été enregistré. Bienvenue sur PolyCarbone !")
                     window.location.href = "/profile"
                 } else {
                     console.error("Erreur lors de la sauvegarde:", await response.text())
-                    alert("Erreur lors de la sauvegarde du bilan.")
+                    toast.error("Erreur lors de la sauvegarde du bilan.")
                 }
             } catch (error) {
                 console.error("Erreur lors de la sauvegarde du bilan:", error)
-                alert("Erreur lors de la sauvegarde du bilan.")
+                toast.error("Erreur lors de la sauvegarde du bilan.")
             }
         }
 
@@ -179,7 +178,7 @@ export default function OnboardingPage() {
             setUsername(data.username)
             fetchAvailableAvatars()
         } else if (!data.hasCarbonFootprint) {
-            setCurrentStep("carbon-test")
+            setCurrentStep("carbon-intro")
             setUsername(data.username)
             setSelectedAvatarId(data.avatar.id)
         } else {
@@ -265,6 +264,7 @@ export default function OnboardingPage() {
 
             if (response.ok) {
                 setCurrentStep("avatar")
+                fetchAvailableAvatars()
             } else {
                 const data = await response.json()
                 setUsernameError(data.error || "Erreur lors de la sauvegarde")
@@ -288,8 +288,7 @@ export default function OnboardingPage() {
             })
 
             if (response.ok) {
-                setCurrentStep("carbon-test")
-                fetchAvailableAvatars()
+                setCurrentStep("carbon-intro")
             } else {
                 console.error("Failed to save avatar")
             }
@@ -307,10 +306,10 @@ export default function OnboardingPage() {
                 email: userData?.email || "",
                 callbackURL: "/onboarding",
             })
-            alert("Email de vérification envoyé !")
+            toast.success("Email de vérification envoyé !")
         } catch (error) {
             console.error("Error resending email:", error)
-            alert("Erreur lors de l'envoi de l'email")
+            toast.error("Erreur lors de l'envoi de l'email")
         } finally {
             setIsSubmitting(false)
         }
@@ -319,8 +318,10 @@ export default function OnboardingPage() {
     const goBack = () => {
         if (currentStep === "avatar") {
             setCurrentStep("username")
-        } else if (currentStep === "carbon-test") {
+        } else if (currentStep === "carbon-intro") {
             setCurrentStep("avatar")
+        } else if (currentStep === "carbon-test") {
+            setCurrentStep("carbon-intro")
         }
     }
 
@@ -329,6 +330,7 @@ export default function OnboardingPage() {
             case "email-verification": return 0
             case "username": return 1
             case "avatar": return 2
+            case "carbon-intro": return 3
             case "carbon-test": return 3
             default: return 0
         }
@@ -342,70 +344,18 @@ export default function OnboardingPage() {
         )
     }
 
-    // Mode plein écran pour le test carbone
-    if (currentStep === "carbon-test" && isFullscreen) {
+    // Interface avec iframe pour le test carbone
+    if (currentStep === "carbon-test") {
         return (
-            <div className="h-screen w-screen overflow-hidden relative">
-                <Button
-                    onClick={() => setIsFullscreen(false)}
-                    size="icon"
-                    variant="secondary"
-                    className="absolute top-4 right-4 z-50 shadow-lg"
-                >
-                    <Minimize2 className="h-4 w-4" />
-                </Button>
-
+            <div className="h-full w-full overflow-hidden">
                 <iframe
                     id="iframeNosGestesClimat"
                     src={`https://nosgestesclimat.fr/simulateur/bilan?iframe=true&integratorUrl=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}&shareData=true&onlySimulation=true`}
-                    className="w-full h-full border-none"
+                    className="w-full h-full border-none rounded-lg bg-white"
                     allow="fullscreen; clipboard-write"
                     allowFullScreen
                     title="Simulateur Nos Gestes Climat"
                 />
-            </div>
-        )
-    }
-
-    // Interface avec iframe pour le test carbone
-    if (currentStep === "carbon-test") {
-        return (
-            <div className="h-screen overflow-hidden flex flex-col bg-gradient-to-br from-green-500 to-emerald-700">
-                <div className="bg-white/10 backdrop-blur-xl border-b border-white/20 p-4">
-                    <div className="container mx-auto flex items-center justify-between">
-                        <Button
-                            variant="ghost"
-                            onClick={goBack}
-                            className="text-white hover:bg-white/20"
-                        >
-                            <ArrowLeft className="h-4 w-4 mr-2" />
-                            Retour
-                        </Button>
-                        <h1 className="text-lg font-semibold text-white">
-                            Calculez votre empreinte carbone
-                        </h1>
-                        <Button
-                            onClick={() => setIsFullscreen(true)}
-                            size="icon"
-                            variant="ghost"
-                            className="text-white hover:bg-white/20"
-                            title="Plein écran"
-                        >
-                            <Maximize2 className="h-4 w-4" />
-                        </Button>
-                    </div>
-                </div>
-
-                <div className="flex-1 min-h-0 p-4">
-                    <iframe
-                        id="iframeNosGestesClimat"
-                        src={`https://nosgestesclimat.fr/simulateur/bilan?iframe=true&integratorUrl=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}&shareData=true&onlySimulation=true`}
-                        className="w-full h-full border-none rounded-lg bg-white"
-                        allow="fullscreen; clipboard-write"
-                        allowFullScreen
-                        title="Simulateur Nos Gestes Climat"
-                    />
-                </div>
             </div>
         )
     }
@@ -429,11 +379,13 @@ export default function OnboardingPage() {
                         {currentStep === "email-verification" && "Vérifiez votre email"}
                         {currentStep === "username" && "Choisissez votre pseudo"}
                         {currentStep === "avatar" && "Personnalisez votre avatar"}
+                        {currentStep === "carbon-intro" && "Votre profil est presque prêt !"}
                     </CardTitle>
                     <CardDescription className="text-center">
                         {currentStep === "email-verification" && "Cliquez sur le lien envoyé par email"}
                         {currentStep === "username" && "Ce pseudo sera visible par les autres utilisateurs"}
                         {currentStep === "avatar" && "Choisissez un avatar pour vous représenter"}
+                        {currentStep === "carbon-intro" && "Une dernière étape avant de commencer"}
                     </CardDescription>
                 </CardHeader>
 
@@ -520,6 +472,34 @@ export default function OnboardingPage() {
                                 >
                                     <LogOut className="h-4 w-4 mr-2" />
                                     Se déconnecter
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Carbon Intro Step */}
+                    {currentStep === "carbon-intro" && (
+                        <div className="space-y-6 text-center">
+                            <Logo className="mx-auto w-16 h-16 items-center justify-center" />
+                            <div className="space-y-3">
+                                <p className="text-base font-medium">
+                                    Vous allez maintenant calculer votre empreinte carbone
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                    Le simulateur <strong>Nos Gestes Climat</strong> va vous poser quelques questions sur vos habitudes de vie (transport, alimentation, logement…).
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                    Cela prend environ <strong>10 minutes</strong>. Vos résultats vous permettront de suivre vos progrès et de vous comparer à la communauté.
+                                </p>
+                            </div>
+                            <div className="flex gap-2 pt-2">
+                                <Button variant="outline" onClick={goBack} className="flex-1">
+                                    <ArrowLeft className="h-4 w-4 mr-2" />
+                                    Retour
+                                </Button>
+                                <Button onClick={() => setCurrentStep("carbon-test")} className="flex-1">
+                                    Commencer
+                                    <ArrowRight className="h-4 w-4 ml-2" />
                                 </Button>
                             </div>
                         </div>

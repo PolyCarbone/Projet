@@ -1,15 +1,19 @@
 "use client"
-
-import dynamic from "next/dynamic"
 import { Label, Pie, PieChart } from "recharts"
+import { useIsMobile } from "@/hooks/use-mobile"
 import {
     ChartConfig,
     ChartContainer,
     ChartTooltip,
     ChartTooltipContent,
 } from "@/components/ui/chart"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card"
 import { useEffect, useState } from "react"
 
 interface CarbonFootprintData {
@@ -31,105 +35,140 @@ const chartConfig = {
     },
     transport: {
         label: "Transport",
-        color: "hsl(200, 70%, 70%)", // bleu clair
+        color: "var(--chart-1)",
     },
     alimentation: {
         label: "Alimentation",
-        color: "hsl(25, 85%, 65%)", // orange clair
-    },
-    servicessocietaux: {
-        label: "Services sociétaux",
-        color: "hsl(270, 60%, 70%)", // violet clair
+        color: "var(--chart-2)",
     },
     logement: {
         label: "Logement",
-        color: "hsl(140, 55%, 65%)", // vert clair
+        color: "var(--chart-3)",
+    },
+    servicessocietaux: {
+        label: "Services sociétaux",
+        color: "var(--chart-4)",
     },
     divers: {
         label: "Divers",
-        color: "hsl(45, 90%, 55%)", // jaune un peu foncé
+        color: "var(--chart-5)",
     },
 } satisfies ChartConfig
 
 export function CarbonFootprintPieChart({ data }: CarbonFootprintChartProps) {
     const [isMounted, setIsMounted] = useState(false)
+    const isMobile = useIsMobile()
+
+    const shortLabels: Record<string, string> = {
+        transport: "Transp.",
+        alimentation: "Aliment.",
+        logement: "Logem.",
+        servicessocietaux: "Services",
+        divers: "Divers",
+    }
 
     useEffect(() => {
         setIsMounted(true)
     }, [])
 
     if (!data) {
-        return (
-            <Card className="backdrop-blur-xl bg-white/80 dark:bg-black/60 border-zinc-200/50 dark:border-zinc-800">
-                <CardHeader>
-                    <CardTitle>Empreinte Carbone</CardTitle>
-                    <CardDescription>Aucune donnée disponible</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <p className="text-sm text-muted-foreground text-center py-8">
-                        Complétez votre évaluation pour voir votre empreinte carbone.
-                    </p>
-                </CardContent>
-            </Card>
-        )
+        return null
     }
 
     const chartData = [
         {
             category: "transport",
             label: "Transport",
-            value: data.transport ?? 0,
+            value: Math.round(data.transport ?? 0),
             fill: "var(--color-transport)",
         },
         {
             category: "alimentation",
             label: "Alimentation",
-            value: data.alimentation ?? 0,
+            value: Math.round(data.alimentation ?? 0),
             fill: "var(--color-alimentation)",
         },
         {
             category: "logement",
             label: "Logement",
-            value: data.logement ?? 0,
+            value: Math.round(data.logement ?? 0),
             fill: "var(--color-logement)",
         },
         {
             category: "servicessocietaux",
             label: "Services sociétaux",
-            value: data.serviceSocietal ?? 0,
+            value: Math.round(data.serviceSocietal ?? 0),
             fill: "var(--color-servicessocietaux)",
         },
         {
             category: "divers",
             label: "Divers",
-            value: data.divers ?? 0,
+            value: Math.round(data.divers ?? 0),
             fill: "var(--color-divers)",
         },
     ]
 
-    const totalFootprint = data.totalFootprint ?? chartData.reduce((sum, item) => sum + item.value, 0)
+    const totalFootprint = Math.round(data.totalFootprint ?? chartData.reduce((sum, item) => sum + item.value, 0))
 
-    // Afficher un skeleton pendant le premier rendu côté client pour éviter les erreurs d'hydratation
     if (!isMounted) {
+        return null
+    }
+
+    const RADIAN = Math.PI / 180
+
+    const renderCustomLabel = ({
+        cx, cy, midAngle, outerRadius, payload,
+    }: {
+        cx: number; cy: number; midAngle: number; outerRadius: number; payload: { category: string }
+    }) => {
+        const radialLen = isMobile ? 10 : 20
+        const horizontalLen = isMobile ? 10 : 20
+        const elbowRadius = outerRadius + radialLen
+        const x0 = cx + (outerRadius + 4) * Math.cos(-midAngle * RADIAN)
+        const y0 = cy + (outerRadius + 4) * Math.sin(-midAngle * RADIAN)
+        const x1 = cx + elbowRadius * Math.cos(-midAngle * RADIAN)
+        const y1 = cy + elbowRadius * Math.sin(-midAngle * RADIAN)
+        const isRight = x1 >= cx
+        const x2 = isRight ? x1 + horizontalLen : x1 - horizontalLen
+        const y2 = y1
+        const label = isMobile
+            ? (shortLabels[payload.category] ?? payload.category)
+            : (chartConfig[payload.category as keyof typeof chartConfig]?.label ?? payload.category)
         return (
-            <Card className="backdrop-blur-xl bg-white/80 dark:bg-black/60 border-zinc-200/50 dark:border-zinc-800">
-                <CardContent>
-                    <div className="h-[200px] w-full flex flex-col justify-center gap-4">
-                        <Skeleton className="h-7 w-full" />
-                        <Skeleton className="h-7 w-4/5" />
-                        <Skeleton className="h-7 w-3/5" />
-                        <Skeleton className="h-7 w-2/5" />
-                    </div>
-                </CardContent>
-            </Card>
+            <g>
+                <polyline
+                    points={`${x0},${y0} ${x1},${y1} ${x2},${y2}`}
+                    stroke="currentColor"
+                    strokeWidth={1.5}
+                    fill="none"
+                    opacity={0.8}
+                />
+                <text
+                    x={isRight ? x2 + 4 : x2 - 4}
+                    y={y2}
+                    textAnchor={isRight ? "start" : "end"}
+                    dominantBaseline="middle"
+                    fontSize={12}
+                    className="fill-foreground"
+                >
+                    {label}
+                </text>
+            </g>
         )
     }
 
     return (
-        <Card className="backdrop-blur-xl bg-white/80 dark:bg-black/60 border-zinc-200/50 dark:border-zinc-800">
-            <CardContent>
-                <ChartContainer config={chartConfig} className="mx-auto aspect-square max-h-[300px]">
-                    <PieChart>
+        <Card className="flex flex-col">
+            <CardHeader className="items-center pb-0">
+                <CardTitle>Répartition par catégorie</CardTitle>
+                <CardDescription>Estimation de votre empreinte annuelle</CardDescription>
+            </CardHeader>
+            <CardContent className="flex-1 pb-0">
+                <ChartContainer
+                    config={chartConfig}
+                    className="h-[240px] w-full [&_svg]:overflow-visible"
+                >
+                    <PieChart margin={{ top: 30, right: 70, bottom: 30, left: 70 }}>
                         <ChartTooltip
                             cursor={false}
                             content={
@@ -137,8 +176,12 @@ export function CarbonFootprintPieChart({ data }: CarbonFootprintChartProps) {
                                     hideLabel
                                     formatter={(value, name) => (
                                         <div className="flex items-center gap-2">
-                                            <span className="font-medium">{chartConfig[name as keyof typeof chartConfig]?.label || name}</span>
-                                            <span className="ml-auto">{Number(value).toLocaleString("fr-FR")} kg CO₂e</span>
+                                            <span className="font-medium">
+                                                {chartConfig[name as keyof typeof chartConfig]?.label ?? String(name)}
+                                            </span>
+                                            <span className="ml-auto">
+                                                {Number(value).toLocaleString("fr-FR")} kg CO₂e
+                                            </span>
                                         </div>
                                     )}
                                 />
@@ -149,7 +192,10 @@ export function CarbonFootprintPieChart({ data }: CarbonFootprintChartProps) {
                             dataKey="value"
                             nameKey="category"
                             innerRadius={60}
+                            outerRadius={85}
                             strokeWidth={5}
+                            label={renderCustomLabel}
+                            labelLine={false}
                         >
                             <Label
                                 content={({ viewBox }) => {
@@ -166,7 +212,7 @@ export function CarbonFootprintPieChart({ data }: CarbonFootprintChartProps) {
                                                     y={viewBox.cy}
                                                     className="fill-foreground text-3xl font-bold"
                                                 >
-                                                    {totalFootprint.toLocaleString("fr-FR", { maximumFractionDigits: 0 })}
+                                                    {totalFootprint.toLocaleString("fr-FR")}
                                                 </tspan>
                                                 <tspan
                                                     x={viewBox.cx}

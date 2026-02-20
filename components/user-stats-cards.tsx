@@ -15,23 +15,11 @@ interface UserStatsCardsProps {
 
 export function UserStatsCards({ stats, isLoading }: UserStatsCardsProps) {
     if (isLoading || !stats) {
-        return (
-            <Card className="border-none shadow-none">
-                <CardContent className="p-6">
-                    <div className="space-y-4">
-                        <div className="h-24 bg-muted animate-pulse rounded-lg" />
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="h-24 bg-muted animate-pulse rounded-lg" />
-                            <div className="h-24 bg-muted animate-pulse rounded-lg" />
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-        )
+        return null
     }
 
     return (
-        <Card className="border-none shadow-none">
+        <Card className="border-none shadow-none p-0">
             <CardContent className="p-0">
                 <div className="flex flex-col gap-4">
                     {/* Card Défis - Prend toute la largeur */}

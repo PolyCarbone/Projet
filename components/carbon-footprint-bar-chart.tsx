@@ -1,10 +1,13 @@
 "use client"
 
-import { Bar, BarChart, CartesianGrid, LabelList, XAxis, YAxis } from "recharts"
+import { Leaf } from "lucide-react"
+import { Bar, BarChart, CartesianGrid, Rectangle, XAxis } from "recharts"
+import { useIsMobile } from "@/hooks/use-mobile"
 import {
     Card,
     CardContent,
     CardDescription,
+    CardFooter,
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
@@ -36,31 +39,37 @@ const chartConfig = {
     },
     transport: {
         label: "Transport",
-        color: "hsl(200, 70%, 70%)", // bleu clair
+        color: "var(--chart-1)",
     },
     alimentation: {
         label: "Alimentation",
-        color: "hsl(25, 85%, 65%)", // orange clair
-    },
-    servicessocietaux: {
-        label: "Services sociétaux",
-        color: "hsl(270, 60%, 70%)", // violet clair
+        color: "var(--chart-2)",
     },
     logement: {
         label: "Logement",
-        color: "hsl(140, 55%, 65%)", // vert clair
+        color: "var(--chart-3)",
+    },
+    servicessocietaux: {
+        label: "Services sociétaux",
+        color: "var(--chart-4)",
     },
     divers: {
         label: "Divers",
-        color: "hsl(45, 90%, 55%)", // jaune un peu foncé
-    },
-    label: {
-        color: "hsl(var(--background))",
+        color: "var(--chart-5)",
     },
 } satisfies ChartConfig
 
 export function CarbonFootprintBarChart({ data }: CarbonFootprintBarChartProps) {
     const [isMounted, setIsMounted] = useState(false)
+    const isMobile = useIsMobile()
+
+    const shortLabels: Record<string, string> = {
+        transport: "Transp.",
+        alimentation: "Aliment.",
+        logement: "Logem.",
+        servicessocietaux: "Services",
+        divers: "Divers",
+    }
 
     useEffect(() => {
         setIsMounted(true)
@@ -77,41 +86,35 @@ export function CarbonFootprintBarChart({ data }: CarbonFootprintBarChartProps) 
     const chartData = [
         {
             category: "transport",
-            label: "Transport",
-            value: data.transport ?? 0,
-            fill: chartConfig.transport.color,
+            value: Math.round(data.transport ?? 0),
+            fill: "var(--color-transport)",
         },
         {
             category: "alimentation",
-            label: "Alimentation",
-            value: data.alimentation ?? 0,
-            fill: chartConfig.alimentation.color,
+            value: Math.round(data.alimentation ?? 0),
+            fill: "var(--color-alimentation)",
         },
         {
             category: "logement",
-            label: "Logement",
-            value: data.logement ?? 0,
-            fill: chartConfig.logement.color,
+            value: Math.round(data.logement ?? 0),
+            fill: "var(--color-logement)",
         },
         {
             category: "servicessocietaux",
-            label: "Services sociétaux",
-            value: data.serviceSocietal ?? 0,
-            fill: chartConfig.servicessocietaux.color,
+            value: Math.round(data.serviceSocietal ?? 0),
+            fill: "var(--color-servicessocietaux)",
         },
         {
             category: "divers",
-            label: "Divers",
-            value: data.divers ?? 0,
-            fill: chartConfig.divers.color,
+            value: Math.round(data.divers ?? 0),
+            fill: "var(--color-divers)",
         },
     ]
 
-    const totalFootprint = data.totalFootprint ?? chartData.reduce((sum, item) => sum + item.value, 0)
+    const totalFootprint = Math.round(data.totalFootprint ?? chartData.reduce((sum, item) => sum + item.value, 0))
 
     if (!isMounted) {
         return (
-
             <div className="h-[200px] w-full flex flex-col justify-center gap-4">
                 <Skeleton className="h-7 w-full" />
                 <Skeleton className="h-7 w-4/5" />
@@ -122,72 +125,68 @@ export function CarbonFootprintBarChart({ data }: CarbonFootprintBarChartProps) 
     }
 
     return (
-        <ChartContainer config={chartConfig}>
-            <BarChart
-                accessibilityLayer
-                data={chartData}
-                layout="vertical"
-                margin={{
-                    right: 50,
-                    left: 20,
-                }}
-            >
-                <YAxis
-                    dataKey="label"
-                    type="category"
-                    tickLine={false}
-                    tickMargin={10}
-                    axisLine={false}
-                    hide
-                />
-                <XAxis dataKey="value" type="number" hide />
-                <ChartTooltip
-                    cursor={false}
-                    content={
-                        <ChartTooltipContent
-                            indicator="line"
-                            formatter={(value, name) => (
-                                <div className="flex items-center gap-2">
-                                    <span className="font-medium">
-                                        {
-                                            ((): string => {
-                                                const configItem = chartConfig[name as keyof typeof chartConfig];
-                                                if (configItem && typeof configItem === "object" && "label" in configItem) {
-                                                    return configItem.label;
-                                                }
-                                                return String(name);
-                                            })()
-                                        }
-                                    </span>
-                                    <span className="ml-auto">{Number(value).toLocaleString("fr-FR")} kg CO₂e</span>
-                                </div>
+        <Card>
+            <CardHeader>
+                <CardTitle>Répartition par catégorie</CardTitle>
+                <CardDescription>Estimation de votre empreinte annuelle</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <ChartContainer config={chartConfig} className="h-[240px] w-full">
+                    <BarChart accessibilityLayer data={chartData}>
+                        <CartesianGrid vertical={false} />
+                        <XAxis
+                            dataKey="category"
+                            tickLine={false}
+                            tickMargin={10}
+                            axisLine={false}
+                            interval={0}
+                            tickFormatter={(value) =>
+                                isMobile
+                                    ? (shortLabels[value] ?? value)
+                                    : (chartConfig[value as keyof typeof chartConfig]?.label ?? value)
+                            }
+                        />
+                        <ChartTooltip
+                            cursor={false}
+                            content={
+                                <ChartTooltipContent
+                                    hideLabel
+                                    formatter={(value, _name, item) => (
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-medium">
+                                                {chartConfig[item.payload.category as keyof typeof chartConfig]?.label ?? item.payload.category}
+                                            </span>
+                                            <span className="ml-auto">
+                                                {Number(value).toLocaleString("fr-FR")} kg CO₂e
+                                            </span>
+                                        </div>
+                                    )}
+                                />
+                            }
+                        />
+                        <Bar
+                            dataKey="value"
+                            strokeWidth={2}
+                            radius={8}
+                            activeBar={({ ...props }) => (
+                                <Rectangle
+                                    {...props}
+                                    fillOpacity={0.8}
+                                    stroke={props.payload.fill}
+                                    strokeDasharray={4}
+                                    strokeDashoffset={4}
+                                />
                             )}
                         />
-                    }
-                />
-                <Bar
-                    dataKey="value"
-                    layout="vertical"
-                    radius={4}
-                    barSize={20}
-                >
-                    <LabelList
-                        dataKey="label"
-                        position="top"
-                        offset={8}
-                        className="fill-foreground"
-                        fontSize={12}
-                    />
-                    <LabelList
-                        dataKey="value"
-                        position="right"
-                        offset={8}
-                        className="fill-foreground"
-                        fontSize={12}
-                        formatter={(value: number) => `${value.toLocaleString("fr-FR")} kg`}
-                    />
-                </Bar>
-            </BarChart>
-        </ChartContainer>
+                    </BarChart>
+                </ChartContainer>
+            </CardContent>
+            <CardFooter className="flex-col items-start gap-2 text-sm">
+                <div className="flex gap-2 leading-none font-medium">
+                    Total : {totalFootprint.toLocaleString("fr-FR")} kg CO₂e
+                    <Leaf className="h-4 w-4" />
+                </div>
+            </CardFooter>
+        </Card>
     )
 }

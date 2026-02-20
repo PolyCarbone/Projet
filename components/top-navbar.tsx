@@ -54,11 +54,11 @@ const TopNavbar = () => {
     };
 
     const menu = [
-        { title: "Mes défis", url: "/challenges", icon: <SquareCheckBig className="size-4" /> },
-        { title: "Mes amis", url: "/social", icon: <UsersRound className="size-4" /> },
-        { title: "Mon profil", url: "/profile", icon: <CircleUserRound className="size-4" /> },
-        { title: "Mon équipe", url: "/team", icon: <UsersRound className="size-4" /> },
-        { title: "Refaire un bilan carbone", url: "/evaluation", icon: <FlaskConical className="size-4" /> },
+        { title: "Mes défis", url: "/challenges", icon: <SquareCheckBig className="size-4 text-white/80" /> },
+        { title: "Mes amis", url: "/social", icon: <UsersRound className="size-4 text-white/80" /> },
+        { title: "Mon profil", url: "/profile", icon: <CircleUserRound className="size-4 text-white/80" /> },
+        { title: "Mon équipe", url: "/team", icon: <UsersRound className="size-4 text-white/80" /> },
+        { title: "Refaire un bilan carbone", url: "/evaluation", icon: <FlaskConical className="size-4 text-white/80" /> },
     ];
 
     const auth = {
@@ -72,7 +72,7 @@ const TopNavbar = () => {
     };
 
     return (
-        <section className="py-4 bg-primary">
+        <section className="py-4 bg-primary sticky top-0 z-50">
             <div className="container mx-auto">
                 {/* Desktop Menu */}
                 <nav className="hidden justify-between items-center lg:flex">
@@ -96,7 +96,7 @@ const TopNavbar = () => {
                         {!isLoading && (
                             session?.user ? (
                                 <>
-                                    <div className="text-white">
+                                    <div className="text-white/80">
                                         <NotificationsDropdown />
                                     </div>
                                     <UserAvatar
@@ -109,9 +109,9 @@ const TopNavbar = () => {
                                         isCurrentUser={true}
                                     />
                                     <Button
-                                        variant="outline"
+                                        variant="ghost"
                                         size="sm"
-                                        className="flex items-center gap-2 bg-white hover:bg-white/90 text-foreground"
+                                        className="flex items-center gap-2 text-white/80 hover:text-white hover:bg-white/15 border border-white/30 hover:border-white/60 transition-colors"
                                         onClick={async () => {
                                             try {
                                                 await authClient.signOut()
@@ -128,10 +128,10 @@ const TopNavbar = () => {
                                 </>
                             ) : (
                                 <>
-                                    <Button asChild variant="outline" size="sm">
+                                    <Button asChild variant="ghost" size="sm" className="text-white/80 hover:text-white hover:bg-white/15 border border-white/30 hover:border-white/60 transition-colors">
                                         <Link href={auth.login.url}>{auth.login.title}</Link>
                                     </Button>
-                                    <Button asChild size="sm">
+                                    <Button asChild size="sm" className="bg-white text-primary hover:bg-white/90 font-semibold transition-colors">
                                         <Link href={auth.signup.url}>{auth.signup.title}</Link>
                                     </Button>
                                 </>
@@ -265,9 +265,9 @@ const renderMenuItem = (item: MenuItem) => {
         <NavigationMenuItem key={item.title}>
             <NavigationMenuLink
                 href={item.url}
-                className="bg-background dark:bg-black hover:bg-muted hover:text-accent-foreground group inline-flex h-10 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors gap-2"
+                className="text-white/80 hover:text-white hover:bg-white/15 group inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors gap-2"
             >
-                <span className="flex items-center gap-2">
+                <span className="flex items-center gap-2 text-white/80 group-hover:text-white">
                     {item.icon}
                     {item.title}
                 </span>
@@ -294,7 +294,7 @@ const renderMobileMenuItem = (item: MenuItem, onClose: () => void) => {
 
     return (
         <Link key={item.title} href={item.url} className="text-md font-semibold flex items-center gap-2" onClick={onClose}>
-            {item.icon}
+            <span className="text-foreground [&_svg]:text-foreground">{item.icon}</span>
             {item.title}
         </Link>
     );

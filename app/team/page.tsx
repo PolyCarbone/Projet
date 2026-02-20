@@ -245,8 +245,7 @@ export default function Team() {
 
     return (
         <div className="min-h-screen bg-white dark:bg-gray-900 p-4">
-            <div className="max-w-4xl mx-auto py-8">
-                <h1 className="text-4xl font-bold mb-8">Équipe</h1>
+            <div className="max-w-4xl mx-auto pt-4">
 
                 {error && (
                     <Card className="p-4 mb-6 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-100">
@@ -291,7 +290,7 @@ export default function Team() {
                                 </h2>
                                 <button
                                     onClick={() => setInviteModalOpen(true)}
-                                    className="text-blue-600 hover:underline"
+                                    className="hover:underline"
                                 >
                                     Ajouter des amis
                                 </button>
