@@ -8,6 +8,13 @@ interface UserProfile {
     name: string
     email: string
     username: string | null
+    usernameColor?: string | null;
+    banner?: {
+        id: string;
+        name: string;
+        imageUrl: string | null;
+        colorValue: string | null;
+    } | null;
     createdAt: Date | string
     avatar?: {
         id: string

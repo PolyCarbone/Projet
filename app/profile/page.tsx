@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { ProfileHeaderCard } from "@/components/profile-header-card"
+import { CosmeticProgressCard } from "@/components/cosmetic-progress-card"
 import { CarbonFootprintPieChart } from "@/components/carbon-footprint-pie-chart"
 import { CarbonFootprintBarChart } from "@/components/carbon-footprint-bar-chart"
 import { CarbonSavingsLineChart } from "@/components/carbon-savings-line-chart"
@@ -127,12 +128,14 @@ export default function ProfilePage() {
                                         avatar: profile.avatar,
                                         avatarBorderColor: profile.avatarBorderColor,
                                         userId: session.user.id,
+                                        usernameColor: profile.usernameColor,
+                                        banner: profile.banner,
                                     }}
                                     isCurrentUser={true}
-                                    onEditEmail={handleEditEmail}
-                                    onEditPassword={handleEditPassword}
-                                    onEditUsername={handleEditUsername}
                                 />
+                            </div>
+                            <div className="px-4 pt-8 pb-4 max-w-7xl mx-auto">
+                                <CosmeticProgressCard/>
                             </div>
                             <div className="px-4 pb-4 max-w-7xl mx-auto">
                                 <CarbonSavingsLineChart

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Settings, Mail, Lock, User, CalendarDays } from "lucide-react"
+import { Settings, Mail, Lock, User, CalendarDays, ImageIcon, CircleUser, Palette } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { UserAvatar } from "@/components/user-avatar"
@@ -12,6 +12,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { EditProfileDialog, EditType } from "./edit-profile-dialog"
 
 interface ProfileHeaderCardProps {
     user: {
@@ -23,23 +24,39 @@ interface ProfileHeaderCardProps {
             name: string
             imageUrl: string
         } | null
+        banner?: {
+            id: string
+            name: string
+            imageUrl: string | null
+            colorValue?: string | null
+        } | null
         avatarBorderColor?: string | null
+        usernameColor?: string | null // Ajout de la couleur du pseudo
         userId: string
     }
     isCurrentUser?: boolean
-    onEditEmail?: () => void
-    onEditPassword?: () => void
-    onEditUsername?: () => void
+    // Les callbacks onEdit... ne sont plus nécessaires car tout est géré par le dialog
 }
 
 export function ProfileHeaderCard({
     user,
     isCurrentUser = false,
-    onEditEmail,
-    onEditPassword,
-    onEditUsername
 }: ProfileHeaderCardProps) {
+    const [editingType, setEditingType] = useState<EditType>(null)
     const isMobile = useIsMobile()
+
+    // Helper pour savoir quoi envoyer à la modale comme valeur initiale
+    const getInitialValue = () => {
+        switch (editingType) {
+            case "username": return user.username
+            case "email": return user.email || ""
+            case "banner": return user.banner?.id || ""
+            case "avatar": return user.avatar?.id || ""
+            case "borderColor": return user.avatarBorderColor || "#22c55e"
+            case "usernameColor": return user.usernameColor || "#ffffff" 
+            default: return ""
+        }
+    }
 
     const formatDate = (date: Date | string | undefined) => {
         if (!date) return "Date inconnue"
@@ -48,77 +65,105 @@ export function ProfileHeaderCard({
     }
 
     return (
-        <Card className={`w-full ${isMobile ? "p-3" : "p-6"} relative`}>
-            <div className={`flex items-center ${isMobile ? "gap-3" : "gap-6"}`}>
-                {/* Avatar à gauche */}
-                <div className="flex-shrink-0">
-                    <UserAvatar
-                        avatar={user.avatar}
-                        avatarBorderColor={user.avatarBorderColor}
-                        username={user.username}
-                        userId={user.userId}
-                        size={isMobile ? "lg" : "xl"}
-                        clickable={false}
-                        priority={true}
-                    />
-                </div>
-
-                {/* Informations utilisateur au centre */}
-                <div className="flex-1 flex flex-col justify-center gap-1">
-                    <h2 className="text-2xl font-bold text-foreground">
-                        {user.username}
-                    </h2>
-                    {isCurrentUser && user.email && (
-                        <p className="text-sm text-muted-foreground">
-                            {user.email}
-                        </p>
+        <>
+            <Card className="w-full overflow-hidden border-none relative flex flex-col justify-end">
+                {/* 1. FOND TOTAL (Couleur ou Image) */}
+                <div 
+                    className="absolute inset-0 z-0 transition-colors duration-500"
+                    style={{ backgroundColor: user.banner?.colorValue || '#007047c9' }}
+                >
+                    {user.banner?.imageUrl && (
+                        <img 
+                            src={user.banner.imageUrl} 
+                            className="w-full h-full object-cover opacity-60" 
+                            alt="Banner" 
+                        />
                     )}
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <CalendarDays className="h-4 w-4" />
-                        <span>depuis {formatDate(user.createdAt)}</span>
-                    </div>
                 </div>
 
-                {/* Menu de réglages en haut à droite */}
+                {/* 2. BOUTON RÉGLAGES (En haut à droite, toujours visible) */}
                 {isCurrentUser && (
-                    <div className="absolute top-2 right-2">
+                    <div className="absolute top-4 right-4 z-20">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-9 w-9 rounded-full hover:bg-muted"
-                                >
-                                    <Settings className="h-6 w-6 text-muted-foreground" />
+                                <Button variant="secondary" size="icon" className="h-9 w-9 rounded-full bg-black/20 backdrop-blur-md hover:bg-black/40 border-none shadow-lg">
+                                    <Settings className="h-5 w-5 text-white" />
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="w-56">
-                                <DropdownMenuItem
-                                    onClick={onEditEmail}
-                                    className="cursor-pointer"
-                                >
-                                    <Mail className="mr-2 h-4 w-4" />
-                                    <span>Modifier l'email</span>
+                                <DropdownMenuItem onClick={() => setEditingType("username")}>
+                                    <User className="mr-2 h-4 w-4" /> Modifier le pseudo
                                 </DropdownMenuItem>
-                                <DropdownMenuItem
-                                    onClick={onEditPassword}
-                                    className="cursor-pointer"
-                                >
-                                    <Lock className="mr-2 h-4 w-4" />
-                                    <span>Modifier le mot de passe</span>
+                                <DropdownMenuItem onClick={() => setEditingType("usernameColor")}>
+                                    <Palette className="mr-2 h-4 w-4" /> Couleur du pseudo
                                 </DropdownMenuItem>
-                                <DropdownMenuItem
-                                    onClick={onEditUsername}
-                                    className="cursor-pointer"
-                                >
-                                    <User className="mr-2 h-4 w-4" />
-                                    <span>Modifier le pseudo</span>
+                                <DropdownMenuItem onClick={() => setEditingType("email")}>
+                                    <Mail className="mr-2 h-4 w-4" /> Modifier l'email
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setEditingType("password")}>
+                                    <Lock className="mr-2 h-4 w-4" /> Modifier le mot de passe
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setEditingType("avatar")}>
+                                    <CircleUser className="mr-2 h-4 w-4" /> Modifier l'avatar
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setEditingType("borderColor")}>
+                                    <div className="mr-2 h-4 w-4 rounded-full border-2 border-current" /> Couleur du contour
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setEditingType("banner")}>
+                                    <ImageIcon className="mr-2 h-4 w-4" /> Modifier la bannière
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
                 )}
-            </div>
-        </Card>
+
+                {/* 3. CONTENU : Avatar à gauche, Infos à droite, poussé vers le bas */}
+                <div className="relative z-10 mt-auto p-6 md:p-8 w-full">
+                    <div className="flex flex-row items-center gap-6">
+                        {/* Avatar */}
+                        <div className="shrink-0 rounded-full">
+                            <UserAvatar
+                                avatar={user.avatar}
+                                avatarBorderColor={user.avatarBorderColor}
+                                username={user.username}
+                                userId={user.userId}
+                                size={isMobile ? "xl" : "lg"}
+                            />
+                        </div>
+
+                        {/* Informations à DROITE de l'avatar */}
+                        <div className="flex flex-col gap-1">
+                            <h2 
+                                className="text-3xl md:text-5xl font-bold drop-shadow-md"
+                                style={{ color: user.usernameColor || '#ffffff' }} // Application de la couleur ici
+                            >
+                                {user.username}
+                            </h2>
+                            <div className="flex flex-col md:flex-row md:items-center gap-x-6 gap-y-1 text-white/90">
+                                {user.email && (
+                                    <div className="flex items-center gap-2 drop-shadow-sm text-sm md:text-base">
+                                        <Mail className="h-4 w-4 shrink-0" />
+                                        <span className="truncate max-w-[200px] md:max-w-none">{user.email}</span>
+                                    </div>
+                                )}
+                                <div className="flex items-center gap-2 drop-shadow-sm text-sm md:text-base">
+                                    <CalendarDays className="h-4 w-4 shrink-0" />
+                                    <span>Membre depuis {formatDate(user.createdAt)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </Card>
+
+            <EditProfileDialog 
+                isOpen={!!editingType}
+                onClose={() => setEditingType(null)}
+                type={editingType}
+                userId={user.userId}
+                currentValue={getInitialValue()}
+                // unlockedItems n'est plus nécessaire ici car chargé dynamiquement
+            />
+        </>
     )
 }

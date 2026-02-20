@@ -13,11 +13,10 @@ async function main() {
     console.log('📦 Création des cosmétiques...');
 
     for (const cosmetic of COSMETICS_CONFIG) {
+        const cosmeticId = `${cosmetic.type}-${cosmetic.name.toLowerCase().replace(/\s+/g, '-')}`;
+        // 1. Upsert du Cosmétique
         await prisma.cosmetic.upsert({
-            where: {
-                // Utiliser un identifiant unique basé sur le type et le nom
-                id: `${cosmetic.type}-${cosmetic.name.toLowerCase().replace(/\s+/g, '-')}`,
-            },
+            where: { id: cosmeticId },
             update: {
                 type: cosmetic.type,
                 name: cosmetic.name,
@@ -25,13 +24,35 @@ async function main() {
                 colorValue: cosmetic.colorValue || null,
             },
             create: {
-                id: `${cosmetic.type}-${cosmetic.name.toLowerCase().replace(/\s+/g, '-')}`,
+                id: cosmeticId,
                 type: cosmetic.type,
                 name: cosmetic.name,
                 imageUrl: cosmetic.imageUrl || null,
                 colorValue: cosmetic.colorValue || null,
             },
         });
+        
+        // 2. Si un palier de déblocage est défini, on l'ajoute/met à jour
+        if (cosmetic.unlockType && cosmetic.unlockThreshold !== undefined) {
+            await prisma.rewardThreshold.upsert({
+                where: {
+                    type_threshold: {
+                        type: cosmetic.unlockType,
+                        threshold: cosmetic.unlockThreshold,
+                    },
+                },
+                update: {
+                    cosmeticId: cosmeticId,
+                    isActive: true,
+                },
+                create: {
+                    type: cosmetic.unlockType,
+                    threshold: cosmetic.unlockThreshold,
+                    cosmeticId: cosmeticId,
+                    isActive: true,
+                },
+            });
+        }
     }
 
     const cosmeticsCount = await prisma.cosmetic.count();
