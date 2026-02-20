@@ -1,5 +1,8 @@
 import { prisma } from "@/lib/prisma";
 
+/**
+ * Vérifie et débloque les cosmétiques pour un utilisateur selon un type de récompense
+ */
 export async function checkAndUnlockCosmetics(userId: string, type: 'referral' | 'streak' | 'co2_personal') {
     // 1. Récupérer la valeur actuelle de la stat pour cet utilisateur
     const user = await prisma.user.findUnique({
@@ -32,7 +35,7 @@ export async function checkAndUnlockCosmetics(userId: string, type: 'referral' |
 
     // 3. Pour chaque palier atteint, on essaie de l'ajouter à l'utilisateur
     // L'utilisation de 'connectOrCreate' ou un check préalable évite les doublons
-    const unlockPromises = reachedThresholds.map(threshold => 
+    const unlockPromises = reachedThresholds.map(threshold =>
         prisma.userCosmetic.upsert({
             where: {
                 userId_cosmeticId: {
@@ -45,6 +48,55 @@ export async function checkAndUnlockCosmetics(userId: string, type: 'referral' |
                 userId: userId,
                 cosmeticId: threshold.cosmeticId,
                 source: type
+            }
+        })
+    );
+
+    await Promise.all(unlockPromises);
+}
+
+/**
+ * Vérifie et débloque TOUS les types de récompenses pour un utilisateur
+ * Utile pour rattraper les récompenses qui auraient dû être débloquées
+ */
+export async function checkAndUnlockAllCosmetics(userId: string) {
+    await Promise.all([
+        checkAndUnlockCosmetics(userId, 'referral'),
+        checkAndUnlockCosmetics(userId, 'streak'),
+        checkAndUnlockCosmetics(userId, 'co2_personal'),
+        grantDefaultCosmetics(userId),
+    ]);
+}
+
+/**
+ * Accorde les cosmétiques par défaut à un utilisateur
+ * Ces cosmétiques sont disponibles pour tous sans condition
+ */
+export async function grantDefaultCosmetics(userId: string) {
+    // Récupérer tous les cosmétiques qui n'ont pas de RewardThreshold associé
+    // (ce qui signifie qu'ils sont disponibles par défaut)
+    const defaultCosmetics = await prisma.cosmetic.findMany({
+        where: {
+            rewardThresholds: {
+                none: {} // Pas de palier de déblocage = disponible par défaut
+            }
+        }
+    });
+
+    // Débloquer chacun de ces cosmétiques pour l'utilisateur
+    const unlockPromises = defaultCosmetics.map(cosmetic =>
+        prisma.userCosmetic.upsert({
+            where: {
+                userId_cosmeticId: {
+                    userId: userId,
+                    cosmeticId: cosmetic.id
+                }
+            },
+            update: {},
+            create: {
+                userId: userId,
+                cosmeticId: cosmetic.id,
+                source: 'default'
             }
         })
     );

@@ -51,13 +51,13 @@ export function CosmeticProgressCard() {
     }
 
     if (isLoading) return (
-        <Card className="w-full bg-[#121212] border-white/10 h-64 flex items-center justify-center">
+        <Card className="w-full h-64 flex items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin text-green-500" />
         </Card>
     )
 
     return (
-        <Card className="w-full bg-[#121212] border-white/10 text-white shadow-lg">
+        <Card>
             <CardHeader className="pb-2">
                 <CardTitle className="text-xl flex items-center gap-2">
                     <Trophy className="h-5 w-5 text-yellow-500" />
@@ -66,14 +66,17 @@ export function CosmeticProgressCard() {
             </CardHeader>
             <CardContent className="space-y-6 pt-2">
                 {progressions.map((item) => {
-                    // Calcul du pourcentage (max 100%)
-                    const percentage = Math.min(100, (item.current / item.target) * 100)
-                    
+                    // Calcul du pourcentage arrondi (max 100%)
+                    const percentage = Math.round(Math.min(100, (item.current / item.target) * 100))
+                    const roundedCurrent = Math.round(item.current)
+                    const roundedTarget = Math.round(item.target)
+                    const remaining = Math.max(0, roundedTarget - roundedCurrent)
+
                     return (
                         <div key={item.id} className="space-y-2">
                             {/* En-tête : Label et Compteur */}
                             <div className="flex justify-between items-end">
-                                <div className="flex items-center gap-2 text-sm font-medium text-gray-200">
+                                <div className="flex items-center gap-2 text-sm font-medium">
                                     {getIcon(item.id)}
                                     {item.label}
                                 </div>
@@ -82,9 +85,9 @@ export function CosmeticProgressCard() {
                                         <span className="text-green-500 font-bold">Max !</span>
                                     ) : (
                                         <span>
-                                            <span className="text-white font-bold">{item.current}</span>
+                                            <span className="text-white font-bold">{roundedCurrent}</span>
                                             <span className="mx-1">/</span>
-                                            {item.target}
+                                            {roundedTarget}
                                         </span>
                                     )}
                                 </div>
@@ -93,18 +96,17 @@ export function CosmeticProgressCard() {
                             {/* Zone principale : Barre + Aperçu Récompense */}
                             <div className="flex items-center gap-4">
                                 <div className="flex-1">
-                                    <Progress 
-                                        value={percentage} 
-                                        className="h-3 bg-white/10" 
-                                        // Tu peux personnaliser la couleur de la barre de progression ici
+                                    <Progress
+                                        value={percentage}
+                                        className="h-3 bg-white/10"
                                         indicatorClassName={
                                             percentage >= 100 ? "bg-green-500" : "bg-green-600"
                                         }
                                     />
                                     <p className="text-xs text-gray-500 mt-1.5">
-                                        {item.isCompleted 
-                                            ? "Toutes les récompenses obtenues !" 
-                                            : `Encore ${Math.max(0, item.target - item.current)} pour débloquer : ${item.reward?.name}`
+                                        {item.isCompleted
+                                            ? "Toutes les récompenses obtenues !"
+                                            : `Encore ${remaining} pour débloquer : ${item.reward?.name}`
                                         }
                                     </p>
                                 </div>
@@ -113,14 +115,14 @@ export function CosmeticProgressCard() {
                                 {!item.isCompleted && item.reward && (
                                     <div className="relative shrink-0 w-10 h-10 rounded-md border border-white/20 overflow-hidden bg-black/40 group cursor-help" title={`Récompense : ${item.reward.name}`}>
                                         {item.reward.imageUrl ? (
-                                            <Image 
-                                                src={item.reward.imageUrl} 
-                                                alt={item.reward.name} 
-                                                width={40} height={40} 
+                                            <Image
+                                                src={item.reward.imageUrl}
+                                                alt={item.reward.name}
+                                                width={40} height={40}
                                                 className="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity"
                                             />
                                         ) : (
-                                            <div 
+                                            <div
                                                 className="w-full h-full"
                                                 style={{ backgroundColor: item.reward.colorValue || '#333' }}
                                             />

@@ -127,7 +127,7 @@ export function CarbonSavingsLineChart({ data, isLoading }: CarbonSavingsLineCha
     const yMax = Math.round(maxVal + yPadding)
 
     return (
-        <div className="px-4 pb-4 max-w-7xl mx-auto">
+        <>
             <Card>
                 <CardHeader className="flex flex-row items-start justify-between">
                     <div>
@@ -191,6 +191,6 @@ export function CarbonSavingsLineChart({ data, isLoading }: CarbonSavingsLineCha
                     </ChartContainer>
                 </CardContent>
             </Card>
-        </div>
+        </>
     )
 }

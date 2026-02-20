@@ -10,7 +10,6 @@ import { UserStatsCards } from "@/components/user-stats-cards"
 import { useAuth } from "@/lib/auth-context"
 import { useUserProfile } from "@/lib/user-profile-context"
 import { Skeleton } from "@/components/ui/skeleton"
-import { CarbonFootprintPieChart } from "@/components/carbon-footprint-pie-chart"
 
 interface CarbonFootprintData {
     transport?: number | null
@@ -135,7 +134,7 @@ export default function ProfilePage() {
                                     isCurrentUser={true}
                                 />
                             </div>
-                            <div className="px-4 pt-8 pb-4 max-w-7xl mx-auto">
+                            <div className="px-4 pb-4 max-w-7xl mx-auto">
                                 <CosmeticProgressCard />
                             </div>
                             <div className="px-4 pb-4 max-w-7xl mx-auto">

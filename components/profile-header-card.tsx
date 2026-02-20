@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Settings, Mail, Lock, User, CalendarDays, ImageIcon, CircleUser, Palette } from "lucide-react"
+import { Settings, Mail, Lock, User, CalendarDays, ImageIcon, CircleUser, Palette, ExternalLink } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { UserAvatar } from "@/components/user-avatar"
@@ -49,11 +49,10 @@ export function ProfileHeaderCard({
     const getInitialValue = () => {
         switch (editingType) {
             case "username": return user.username
-            case "email": return user.email || ""
             case "banner": return user.banner?.id || ""
             case "avatar": return user.avatar?.id || ""
             case "borderColor": return user.avatarBorderColor || "#22c55e"
-            case "usernameColor": return user.usernameColor || "#ffffff" 
+            case "usernameColor": return user.usernameColor || "#ffffff"
             default: return ""
         }
     }
@@ -68,15 +67,15 @@ export function ProfileHeaderCard({
         <>
             <Card className="w-full overflow-hidden border-none relative flex flex-col justify-end">
                 {/* 1. FOND TOTAL (Couleur ou Image) */}
-                <div 
+                <div
                     className="absolute inset-0 z-0 transition-colors duration-500"
                     style={{ backgroundColor: user.banner?.colorValue || '#007047c9' }}
                 >
                     {user.banner?.imageUrl && (
-                        <img 
-                            src={user.banner.imageUrl} 
-                            className="w-full h-full object-cover opacity-60" 
-                            alt="Banner" 
+                        <img
+                            src={user.banner.imageUrl}
+                            className="w-full h-full object-cover opacity-60"
+                            alt="Banner"
                         />
                     )}
                 </div>
@@ -97,11 +96,13 @@ export function ProfileHeaderCard({
                                 <DropdownMenuItem onClick={() => setEditingType("usernameColor")}>
                                     <Palette className="mr-2 h-4 w-4" /> Couleur du pseudo
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => setEditingType("email")}>
-                                    <Mail className="mr-2 h-4 w-4" /> Modifier l'email
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => setEditingType("password")}>
-                                    <Lock className="mr-2 h-4 w-4" /> Modifier le mot de passe
+                                <DropdownMenuItem onClick={() => {
+                                    if (user.email) {
+                                        window.open(`/auth/forgot-password?email=${encodeURIComponent(user.email)}`, "_blank")
+                                    }
+                                }}>
+                                    <Lock className="mr-2 h-4 w-4" /> Réinitialiser le mot de passe
+                                    <ExternalLink className="ml-auto h-3 w-3 text-muted-foreground" />
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => setEditingType("avatar")}>
                                     <CircleUser className="mr-2 h-4 w-4" /> Modifier l'avatar
@@ -133,7 +134,7 @@ export function ProfileHeaderCard({
 
                         {/* Informations à DROITE de l'avatar */}
                         <div className="flex flex-col gap-1">
-                            <h2 
+                            <h2
                                 className="text-3xl md:text-5xl font-bold drop-shadow-md"
                                 style={{ color: user.usernameColor || '#ffffff' }} // Application de la couleur ici
                             >
@@ -156,13 +157,13 @@ export function ProfileHeaderCard({
                 </div>
             </Card>
 
-            <EditProfileDialog 
+            <EditProfileDialog
                 isOpen={!!editingType}
                 onClose={() => setEditingType(null)}
                 type={editingType}
                 userId={user.userId}
                 currentValue={getInitialValue()}
-                // unlockedItems n'est plus nécessaire ici car chargé dynamiquement
+            // unlockedItems n'est plus nécessaire ici car chargé dynamiquement
             />
         </>
     )

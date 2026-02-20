@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma"; // Ton import prisma habituel
-import { checkAndUnlockCosmetics } from "@/lib/cosmetics-service"; // Le service créé juste avant
+import { checkAndUnlockAllCosmetics } from "@/lib/cosmetics-service"; // Le service créé juste avant
 
 export async function GET(request: NextRequest) {
     try {
@@ -19,16 +19,13 @@ export async function GET(request: NextRequest) {
 
         // 2. Récupération des paramètres (ex: ?type=avatar)
         const searchParams = request.nextUrl.searchParams;
-        const type = searchParams.get("type"); 
+        const type = searchParams.get("type");
 
         // 3. Vérification des récompenses (Auto-Unlock)
         // On lance les vérifications maintenant pour être sûr que l'utilisateur voit
         // ce qu'il vient potentiellement de gagner.
-        await Promise.all([
-            checkAndUnlockCosmetics(session.user.id, 'referral'),
-            checkAndUnlockCosmetics(session.user.id, 'streak'),
-            checkAndUnlockCosmetics(session.user.id, 'co2_personal')
-        ]);
+        // Cette fonction vérifie TOUS les types de récompenses + les cosmétiques par défaut
+        await checkAndUnlockAllCosmetics(session.user.id);
 
         // 4. Construction de la requête Prisma
         // On prépare le filtre : toujours l'ID utilisateur, et optionnellement le type
@@ -42,7 +39,7 @@ export async function GET(request: NextRequest) {
             };
         }
 
-        // 5. Récupération des items
+        // 5. Récupération des items débloqués par l'utilisateur
         const unlockedItems = await prisma.userCosmetic.findMany({
             where: whereClause,
             include: {
@@ -54,6 +51,7 @@ export async function GET(request: NextRequest) {
         });
 
         // 6. Formatage pour le front-end
+        const unlockedIds = new Set(unlockedItems.map(item => item.cosmetic.id));
         const items = unlockedItems.map((item) => ({
             id: item.cosmetic.id,
             name: item.cosmetic.name,
@@ -61,6 +59,29 @@ export async function GET(request: NextRequest) {
             colorValue: item.cosmetic.colorValue,
             type: item.cosmetic.type
         }));
+
+        // 6b. Pour les bannières : inclure aussi les bannières couleur par défaut
+        // (colorValue défini, pas d'imageUrl) qui sont disponibles pour tous
+        if (type === 'banner') {
+            const defaultColorBanners = await prisma.cosmetic.findMany({
+                where: {
+                    type: 'banner',
+                    colorValue: { not: null },
+                    imageUrl: null,
+                },
+            });
+            for (const cosmetic of defaultColorBanners) {
+                if (!unlockedIds.has(cosmetic.id)) {
+                    items.push({
+                        id: cosmetic.id,
+                        name: cosmetic.name,
+                        imageUrl: cosmetic.imageUrl,
+                        colorValue: cosmetic.colorValue,
+                        type: cosmetic.type,
+                    });
+                }
+            }
+        }
 
         return NextResponse.json(items);
 

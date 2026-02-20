@@ -41,7 +41,8 @@ export async function GET() {
                     select: {
                         id: true,
                         name: true,
-                        imageUrl: true
+                        imageUrl: true,
+                        colorValue: true
                     }
                 },
                 usernameColor: true,
@@ -73,30 +74,30 @@ export async function GET() {
 }
 
 export async function PATCH(req: Request) {
-  try {
-    const session = await auth.api.getSession({
+    try {
+        const session = await auth.api.getSession({
             headers: await headers(),
         });
-    if (!session?.user?.id) return new NextResponse("Unauthorized", { status: 401 });
+        if (!session?.user?.id) return new NextResponse("Unauthorized", { status: 401 });
 
-    const body = await req.json();
-    const { username, usernameColor, bannerId, avatarId, avatarBorderColor } = body;
+        const body = await req.json();
+        const { username, usernameColor, bannerId, avatarId, avatarBorderColor } = body;
 
-    // Mise à jour dynamique : Prisma ne modifiera que les champs fournis
-    const updatedUser = await prisma.user.update({
-      where: { id: session.user.id },
-      data: {
-        ...(username && { username }),
-        ...(usernameColor && { usernameColor }), // <-- CORRECTION ICI
-        ...(bannerId && { bannerId }),
-        ...(avatarId && { avatarId }),
-        ...(avatarBorderColor && { avatarBorderColor }),
-      },
-    });
+        // Mise à jour dynamique : Prisma ne modifiera que les champs fournis
+        const updatedUser = await prisma.user.update({
+            where: { id: session.user.id },
+            data: {
+                ...(username && { username }),
+                ...(usernameColor && { usernameColor }), // <-- CORRECTION ICI
+                ...(bannerId && { bannerId }),
+                ...(avatarId && { avatarId }),
+                ...(avatarBorderColor && { avatarBorderColor }),
+            },
+        });
 
-    return NextResponse.json(updatedUser);
-  } catch (error) {
-    console.error("[PROFILE_PATCH]", error);
-    return new NextResponse("Internal Error", { status: 500 });
-  }
+        return NextResponse.json(updatedUser);
+    } catch (error) {
+        console.error("[PROFILE_PATCH]", error);
+        return new NextResponse("Internal Error", { status: 500 });
+    }
 }
