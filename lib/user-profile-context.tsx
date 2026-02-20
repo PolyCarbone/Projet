@@ -9,6 +9,7 @@ interface UserProfile {
     email: string
     username: string | null
     createdAt: Date | string
+    isAdmin?: boolean
     avatar?: {
         id: string
         name: string

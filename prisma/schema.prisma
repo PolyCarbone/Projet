@@ -68,6 +68,7 @@ model User {
   receivedMessages       Message[]                @relation("MessageReceiver")
   teamMemberships        TeamMember[]
   teamsCreated           Team[]
+  connections            Connection[]
 
   @@map("user")
 }
@@ -114,6 +115,19 @@ model Verification {
   updatedAt  DateTime @updatedAt
 
   @@map("verification")
+}
+
+model Connection {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("connection")
 }
 
 // ============================================
