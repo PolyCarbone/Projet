@@ -55,7 +55,7 @@ export function UserStatsCards({ stats, isLoading }: UserStatsCardsProps) {
                                         </div>
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-[10px] md:text-xs text-muted-foreground">Streak</p>
+                                        <p className="text-[10px] md:text-xs text-muted-foreground">Défis consécutifs journaliers</p>
                                         <p className="text-sm md:text-xl font-bold text-foreground">
                                             {stats.currentStreak} {stats.currentStreak > 1 ? 'jours' : 'jour'}
                                         </p>

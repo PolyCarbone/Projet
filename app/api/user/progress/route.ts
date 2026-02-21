@@ -75,7 +75,7 @@ export async function GET() {
       },
       {
         id: "streak",
-        label: "Jours consécutifs",
+        label: "Défis consécutifs journaliers",
         ...calculateProgress(user.currentStreak, "streak")
       },
       {
