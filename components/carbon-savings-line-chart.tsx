@@ -178,7 +178,7 @@ export function CarbonSavingsLineChart({ data, isLoading, title = "Ma Progressio
                             />
                             <Area
                                 dataKey="cumulativeCO2Saved"
-                                type="natural"
+                                type="linear"
                                 stroke="var(--color-cumulativeCO2Saved)"
                                 strokeWidth={2}
                                 fill="url(#fillCO2)"
