@@ -33,6 +33,15 @@ export async function GET(
                     },
                 },
                 avatarBorderColor: true,
+                usernameColor: true,
+                banner: {
+                    select: {
+                        id: true,
+                        name: true,
+                        imageUrl: true,
+                        colorValue: true,
+                    },
+                },
                 totalCO2Saved: true,
             },
         })

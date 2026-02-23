@@ -45,10 +45,7 @@ export function TeamMembersList({
                             isCurrentUser={false}
                         />
                         <div>
-                            <p className="font-medium">{member.name}</p>
-                            <p className="text-sm text-muted-foreground">
-                                @{member.username}
-                            </p>
+                            <p className="font-medium">@{member.username}</p>
                         </div>
                     </div>
                     <div className="text-right">

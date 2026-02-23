@@ -55,6 +55,7 @@ interface TeamInvitation {
             user: {
                 id: string
                 name: string
+                username: string
             }
         }>
     }
@@ -264,6 +265,13 @@ export default function Team() {
                             onInviteFriend={() => setInviteModalOpen(true)}
                         />
 
+                        <InviteFriendsModal
+                            isOpen={inviteModalOpen}
+                            onClose={() => setInviteModalOpen(false)}
+                            teamMemberIds={team.members.map((m) => m.userId)}
+                            onInvite={handleInviteFriend}
+                        />
+
                         <Tabs defaultValue="members" className="mb-8">
                             <TabsList className="grid w-full grid-cols-2">
                                 <TabsTrigger value="members">
@@ -294,12 +302,6 @@ export default function Team() {
                                 >
                                     Ajouter des amis
                                 </button>
-                                <InviteFriendsModal
-                                    isOpen={inviteModalOpen}
-                                    onClose={() => setInviteModalOpen(false)}
-                                    teamMemberIds={team.members.map((m) => m.userId)}
-                                    onInvite={handleInviteFriend}
-                                />
                             </TabsContent>
                         </Tabs>
                     </div>

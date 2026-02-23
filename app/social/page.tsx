@@ -332,7 +332,7 @@ export default function SocialPage() {
                                 <CardHeader>
                                     <CardTitle>Trouver des amis</CardTitle>
                                     <CardDescription>
-                                        Recherchez des utilisateurs par email ou pseudo
+                                        Recherchez des utilisateurs par pseudo ou email
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>

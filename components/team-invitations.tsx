@@ -20,6 +20,7 @@ interface TeamInvitation {
             user: {
                 id: string
                 name: string
+                username: string
             }
         }>
     }
@@ -61,7 +62,7 @@ export function TeamInvitations({
                             <p className="text-sm text-muted-foreground">
                                 Créée par{" "}
                                 <span className="font-medium">
-                                    {invitation.team.creator.name}
+                                    {invitation.team.creator.username}
                                 </span>
                             </p>
                         </div>

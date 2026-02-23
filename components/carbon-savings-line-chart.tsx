@@ -25,6 +25,8 @@ interface CarbonSavingsData {
 interface CarbonSavingsLineChartProps {
     data: CarbonSavingsData[] | null
     isLoading?: boolean
+    title?: string
+    description?: string
 }
 
 const chartConfig = {
@@ -34,14 +36,14 @@ const chartConfig = {
     },
 } satisfies ChartConfig
 
-export function CarbonSavingsLineChart({ data, isLoading }: CarbonSavingsLineChartProps) {
+export function CarbonSavingsLineChart({ data, isLoading, title = "Ma Progression", description = "Depuis votre premier défi réalisé" }: CarbonSavingsLineChartProps) {
     if (isLoading) {
         return (
             <Card className="border-none shadow-none">
                 <CardHeader className="text-center">
                     <CardTitle className="flex items-center justify-center gap-2">
                         <TrendingUp className="h-5 w-5 text-green-500" />
-                        Ma Progression
+                        {title}
                     </CardTitle>
                     <CardDescription>Chargement...</CardDescription>
                 </CardHeader>
@@ -127,12 +129,12 @@ export function CarbonSavingsLineChart({ data, isLoading }: CarbonSavingsLineCha
     const yMax = Math.round(maxVal + yPadding)
 
     return (
-        <>
+        <div className="px-4 pb-4 max-w-7xl mx-auto">
             <Card>
                 <CardHeader className="flex flex-row items-start justify-between">
                     <div>
-                        <CardTitle>Ma Progression</CardTitle>
-                        <CardDescription>Depuis votre premier défi réalisé</CardDescription>
+                        <CardTitle>{title}</CardTitle>
+                        <CardDescription>{description}</CardDescription>
                     </div>
                     <div className="flex items-center gap-1 text-green-500 font-semibold text-base">
                         <TrendingUp className="h-4 w-4" />
@@ -191,6 +193,6 @@ export function CarbonSavingsLineChart({ data, isLoading }: CarbonSavingsLineCha
                     </ChartContainer>
                 </CardContent>
             </Card>
-        </>
+        </div>
     )
 }

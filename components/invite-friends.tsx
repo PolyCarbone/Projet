@@ -87,19 +87,16 @@ export function InviteFriends({ teamMemberIds, onInvite }: InviteFriendsProps) {
                     <Card key={friend.id} className="p-4 flex items-center justify-between">
                         <div className="flex items-center gap-3 flex-1">
                             <UserAvatar
-                            avatar={friend.avatar}
-                            avatarBorderColor={friend.avatarBorderColor}
-                            username={friend.username || friend.name}
-                            userId={friend.id}
-                            size="md"
-                            clickable={true}
-                            isCurrentUser={false}
-                        />
+                                avatar={friend.avatar}
+                                avatarBorderColor={friend.avatarBorderColor}
+                                username={friend.username || friend.name}
+                                userId={friend.id}
+                                size="md"
+                                clickable={true}
+                                isCurrentUser={false}
+                            />
                             <div>
-                                <p className="font-medium">{friend.name}</p>
-                                <p className="text-sm text-muted-foreground">
-                                    @{friend.username}
-                                </p>
+                                <p className="font-medium">@{friend.username}</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-2">

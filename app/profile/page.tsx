@@ -137,7 +137,7 @@ export default function ProfilePage() {
                             <div className="px-4 pb-4 max-w-7xl mx-auto">
                                 <CosmeticProgressCard />
                             </div>
-                            <div className="px-4 pb-4 max-w-7xl mx-auto">
+                            <div className="">
                                 <CarbonSavingsLineChart
                                     data={carbonSavingsTimeline}
                                     isLoading={isLoadingTimeline}
@@ -148,9 +148,6 @@ export default function ProfilePage() {
                                     stats={userStats}
                                     isLoading={isLoadingStats}
                                 />
-                            </div>
-                            <div className="px-4 pb-4 max-w-7xl mx-auto">
-                                <CarbonFootprintBarChart data={carbonFootprint} />
                             </div>
                             <div className="px-4 pb-4 max-w-7xl mx-auto">
                                 <CarbonFootprintPieChart data={carbonFootprint} />
