@@ -18,6 +18,7 @@ interface CarbonFootprintData {
     serviceSocietal?: number | null
     divers?: number | null
     totalFootprint?: number
+    co2SavedByCategory?: Record<string, number> | null
 }
 
 interface CarbonSavingsData {

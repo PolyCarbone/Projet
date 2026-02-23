@@ -23,6 +23,7 @@ interface CarbonFootprintData {
     serviceSocietal?: number | null
     divers?: number | null
     totalFootprint?: number
+    co2SavedByCategory?: Record<string, number> | null
 }
 
 interface CarbonFootprintChartProps {
@@ -75,40 +76,45 @@ export function CarbonFootprintPieChart({ data }: CarbonFootprintChartProps) {
         return null
     }
 
+    const savings = data.co2SavedByCategory ?? {}
+    const netValue = (baseline: number | null | undefined, key: string) =>
+        Math.max(0, Math.round((baseline ?? 0) - (savings[key] ?? 0)))
+
     const chartData = [
         {
             category: "transport",
             label: "Transport",
-            value: Math.round(data.transport ?? 0),
+            value: netValue(data.transport, "transport"),
             fill: "var(--color-transport)",
         },
         {
             category: "alimentation",
             label: "Alimentation",
-            value: Math.round(data.alimentation ?? 0),
+            value: netValue(data.alimentation, "alimentation"),
             fill: "var(--color-alimentation)",
         },
         {
             category: "logement",
             label: "Logement",
-            value: Math.round(data.logement ?? 0),
+            value: netValue(data.logement, "logement"),
             fill: "var(--color-logement)",
         },
         {
             category: "servicessocietaux",
             label: "Services sociétaux",
-            value: Math.round(data.serviceSocietal ?? 0),
+            value: netValue(data.serviceSocietal, "serviceSocietal"),
             fill: "var(--color-servicessocietaux)",
         },
         {
             category: "divers",
             label: "Divers",
-            value: Math.round(data.divers ?? 0),
+            value: netValue(data.divers, "divers"),
             fill: "var(--color-divers)",
         },
     ]
 
-    const totalFootprint = Math.round(data.totalFootprint ?? chartData.reduce((sum, item) => sum + item.value, 0))
+    const totalSaved = Object.values(savings).reduce((s, v) => s + v, 0)
+    const totalFootprint = Math.max(0, Math.round((data.totalFootprint ?? chartData.reduce((sum, item) => sum + item.value, 0)) - totalSaved))
 
     if (!isMounted) {
         return null

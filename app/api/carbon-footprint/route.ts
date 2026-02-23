@@ -121,7 +121,32 @@ export async function GET() {
             },
         });
 
-        return NextResponse.json(carbonFootprint);
+        // Récupérer les défis complétés avec le CO2 économisé par catégorie
+        const completedChallenges = await prisma.userChallenge.findMany({
+            where: {
+                userId: session.user.id,
+                status: "completed",
+                co2Saved: { gt: 0 },
+            },
+            select: {
+                co2Saved: true,
+                challenge: {
+                    select: { category: true },
+                },
+            },
+        });
+
+        // Agréger les économies par catégorie
+        const co2SavedByCategory: Record<string, number> = {};
+        for (const uc of completedChallenges) {
+            const cat = uc.challenge.category;
+            co2SavedByCategory[cat] = (co2SavedByCategory[cat] ?? 0) + (uc.co2Saved ?? 0);
+        }
+
+        return NextResponse.json({
+            ...carbonFootprint,
+            co2SavedByCategory,
+        });
     } catch (error) {
         console.error("Erreur lors de la récupération des bilans carbone:", error);
         return NextResponse.json(

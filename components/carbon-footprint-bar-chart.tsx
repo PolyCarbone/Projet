@@ -27,6 +27,7 @@ interface CarbonFootprintData {
     serviceSocietal?: number | null
     divers?: number | null
     totalFootprint?: number
+    co2SavedByCategory?: Record<string, number> | null
 }
 
 interface CarbonFootprintBarChartProps {
@@ -83,35 +84,40 @@ export function CarbonFootprintBarChart({ data }: CarbonFootprintBarChartProps) 
         )
     }
 
+    const savings = data.co2SavedByCategory ?? {}
+    const netValue = (baseline: number | null | undefined, key: string) =>
+        Math.max(0, Math.round((baseline ?? 0) - (savings[key] ?? 0)))
+
     const chartData = [
         {
             category: "transport",
-            value: Math.round(data.transport ?? 0),
+            value: netValue(data.transport, "transport"),
             fill: "var(--color-transport)",
         },
         {
             category: "alimentation",
-            value: Math.round(data.alimentation ?? 0),
+            value: netValue(data.alimentation, "alimentation"),
             fill: "var(--color-alimentation)",
         },
         {
             category: "logement",
-            value: Math.round(data.logement ?? 0),
+            value: netValue(data.logement, "logement"),
             fill: "var(--color-logement)",
         },
         {
             category: "servicessocietaux",
-            value: Math.round(data.serviceSocietal ?? 0),
+            value: netValue(data.serviceSocietal, "serviceSocietal"),
             fill: "var(--color-servicessocietaux)",
         },
         {
             category: "divers",
-            value: Math.round(data.divers ?? 0),
+            value: netValue(data.divers, "divers"),
             fill: "var(--color-divers)",
         },
     ]
 
-    const totalFootprint = Math.round(data.totalFootprint ?? chartData.reduce((sum, item) => sum + item.value, 0))
+    const totalSaved = Object.values(savings).reduce((s, v) => s + v, 0)
+    const totalFootprint = Math.max(0, Math.round((data.totalFootprint ?? chartData.reduce((sum, item) => sum + item.value, 0)) - totalSaved))
 
     if (!isMounted) {
         return (
@@ -183,9 +189,14 @@ export function CarbonFootprintBarChart({ data }: CarbonFootprintBarChartProps) 
             </CardContent>
             <CardFooter className="flex-col items-start gap-2 text-sm">
                 <div className="flex gap-2 leading-none font-medium">
-                    Total : {totalFootprint.toLocaleString("fr-FR")} kg CO₂e
+                    Total net : {totalFootprint.toLocaleString("fr-FR")} kg CO₂e
                     <Leaf className="h-4 w-4" />
                 </div>
+                {totalSaved > 0 && (
+                    <div className="text-muted-foreground">
+                        Dont {totalSaved.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} kg CO₂e économisés grâce aux défis
+                    </div>
+                )}
             </CardFooter>
         </Card>
     )
