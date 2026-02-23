@@ -242,7 +242,7 @@ export function EditProfileDialog({
         return (
             <div className="space-y-6">
                 {/* Prévisualisation avec le vrai pseudo */}
-                <Card className="p-6 bg-muted/50">
+                <Card className="p-6 bg-gray-500">
                     <div className="flex justify-center">
                         <span
                             className="text-3xl font-bold transition-colors duration-200"
@@ -492,7 +492,7 @@ export function EditProfileDialog({
 
                 {/* Scroll horizontal des avatars */}
                 <ScrollArea className="w-full">
-                    <div className="flex gap-3 pb-6 pt-2 pr-2">
+                    <div className="flex gap-3 pb-6 pt-2 px-2">
                         {avatars.map((avatar) => (
                             <button
                                 key={avatar.id}
