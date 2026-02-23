@@ -86,13 +86,15 @@ const TopNavbar = () => {
                                 {logo.title}
                             </span>
                         </Link>
-                        <div className="flex items-center">
-                            <NavigationMenu>
-                                <NavigationMenuList>
-                                    {menu.map((item) => renderMenuItem(item))}
-                                </NavigationMenuList>
-                            </NavigationMenu>
-                        </div>
+                        {!isLoading && session?.user && (
+                            <div className="flex items-center">
+                                <NavigationMenu>
+                                    <NavigationMenuList>
+                                        {menu.map((item) => renderMenuItem(item))}
+                                    </NavigationMenuList>
+                                </NavigationMenu>
+                            </div>
+                        )}
                     </div>
                     <div className="flex gap-2 items-center">
                         {!isLoading && (
@@ -194,6 +196,7 @@ const TopNavbar = () => {
                                         </SheetTitle>
                                     </SheetHeader>
                                     <div className="flex flex-col flex-1 justify-between">
+                                        {!isLoading && session?.user && (
                                         <div className="p-4">
                                             <Accordion
                                                 type="single"
@@ -203,6 +206,7 @@ const TopNavbar = () => {
                                                 {menu.map((item) => renderMobileMenuItem(item, () => setIsSheetOpen(false)))}
                                             </Accordion>
                                         </div>
+                                    )}
 
                                         {/* Auth section en bas */}
                                         {!isLoading && (
