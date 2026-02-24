@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { Suspense, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { authClient } from "@/lib/auth-client"
 import { Logo } from "@/components/logo"
@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Mail, ArrowLeft, CheckCircle, AlertCircle } from "lucide-react"
 
-export default function ForgotPasswordPage() {
+function ForgotPasswordContent() {
     const searchParams = useSearchParams()
     const emailFromParams = searchParams.get("email") || ""
 
@@ -147,5 +147,13 @@ export default function ForgotPasswordPage() {
                 </Card>
             </div>
         </div>
+    )
+}
+
+export default function ForgotPasswordPage() {
+    return (
+        <Suspense fallback={null}>
+            <ForgotPasswordContent />
+        </Suspense>
     )
 }

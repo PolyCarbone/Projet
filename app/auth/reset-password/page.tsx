@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { Suspense, useState } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { authClient } from "@/lib/auth-client"
 import { Logo } from "@/components/logo"
@@ -17,7 +17,7 @@ import { CheckCircle, AlertCircle, Eye, EyeOff } from "lucide-react"
 import { toast } from "sonner"
 import { frenchLocale } from "@/lib/auth-locales"
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
     const searchParams = useSearchParams()
     const token = searchParams.get("token") || ""
     const router = useRouter()
@@ -201,5 +201,13 @@ export default function ResetPasswordPage() {
                 </Card>
             </div>
         </div>
+    )
+}
+
+export default function ResetPasswordPage() {
+    return (
+        <Suspense fallback={null}>
+            <ResetPasswordContent />
+        </Suspense>
     )
 }

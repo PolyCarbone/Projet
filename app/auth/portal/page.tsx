@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import { AuthForm } from "@/components/auth-form"
 import { Logo } from "@/components/logo"
 
@@ -14,7 +15,9 @@ export default function LoginPage() {
                 </div>
                 <div className="flex items-start justify-center mt-6">
                     <div className="w-full max-w-xs">
-                        <AuthForm defaultMode="login" />
+                        <Suspense fallback={null}>
+                            <AuthForm defaultMode="login" />
+                        </Suspense>
                     </div>
                 </div>
             </div>

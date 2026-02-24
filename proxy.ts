@@ -6,7 +6,7 @@ import { auth } from "@/lib/auth";
 const AUTH_ROUTES = ["/auth/portal"];
 
 // Routes protégées (accès uniquement si connecté ET onboarding terminé)
-const PROTECTED_ROUTES = ["/home", "/profile", "/social", "/challenges", "/evaluation", "/onboarding"];
+const PROTECTED_ROUTES = ["/home", "/profile", "/social", "/challenges", "/evaluation", "/onboarding", "/team"];
 
 
 export async function proxy(request: NextRequest) {
@@ -53,7 +53,7 @@ export async function proxy(request: NextRequest) {
 
         // Si l'onboarding est terminé et l'utilisateur essaie d'accéder à /
         // / est uniquement accessible aux utilisateurs non connectés sinon home est l'équivalent pour les connectés
-        if( pathname === "/" ) {
+        if (pathname === "/") {
             return NextResponse.redirect(new URL("/home", request.url));
         }
     }

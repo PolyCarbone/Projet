@@ -30,10 +30,10 @@ model User {
   onboardingStep Int     @default(0)
 
   // Personnalisation du profil
-  avatarId          String?   @unique
+  avatarId          String?
   avatar            Cosmetic? @relation("UserAvatar", fields: [avatarId], references: [id])
   avatarBorderColor String? // Couleur du contour
-  bannerId          String?   @unique
+  bannerId          String?
   banner            Cosmetic? @relation("UserBanner", fields: [bannerId], references: [id])
   usernameColor     String? // Couleur du pseudo
   darkMode          Boolean   @default(false)
@@ -244,8 +244,8 @@ model Cosmetic {
   colorValue String? // Pour couleurs (hex)
 
   userCosmetics        UserCosmetic[]
-  userAvatar           User?                 @relation("UserAvatar")
-  userBanner           User?                 @relation("UserBanner")
+  userAvatar           User[]                @relation("UserAvatar")
+  userBanner           User[]                @relation("UserBanner")
   rewardThresholds     RewardThreshold[]
   teamRewardThresholds TeamRewardThreshold[] @relation("TeamRewards")
 
