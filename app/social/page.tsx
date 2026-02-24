@@ -17,8 +17,10 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import { Search, UserPlus, Users, Clock, CheckCircle, XCircle, Mail } from "lucide-react";
+import { Search, UserPlus, Users, Clock, CheckCircle, XCircle, Mail, Flame, ArrowDownAZ, CalendarClock } from "lucide-react";
 import { toast } from "sonner";
+
+type FriendSortOrder = "date" | "alphabetical";
 
 interface Friend {
     id: string;
@@ -33,6 +35,7 @@ interface Friend {
         } | null;
         avatarBorderColor?: string | null;
         totalCO2Saved: number;
+        currentStreak?: number;
     };
     status: string;
     createdAt: string;
@@ -63,6 +66,17 @@ export default function SocialPage() {
     const [showReferralDialog, setShowReferralDialog] = useState(false);
     const [isSendingReferral, setIsSendingReferral] = useState(false);
     const [emailNotFound, setEmailNotFound] = useState(false);
+    const [friendSortOrder, setFriendSortOrder] = useState<FriendSortOrder>("date");
+
+    const sortedFriends = [...friends].sort((a, b) => {
+        if (friendSortOrder === "alphabetical") {
+            const nameA = (a.friend.username || a.friend.name).toLowerCase();
+            const nameB = (b.friend.username || b.friend.name).toLowerCase();
+            return nameA.localeCompare(nameB, "fr");
+        }
+        // date: most recent first
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
 
     useEffect(() => {
         if (session?.user) {
@@ -201,18 +215,18 @@ export default function SocialPage() {
             <div className="relative">
                 <div className="container mx-auto px-4 py-8">
                     <Tabs defaultValue="friends" className="w-full">
-                        <TabsList className="grid w-full grid-cols-3 max-w-md mx-auto">
-                            <TabsTrigger value="friends">
-                                <Users className="h-4 w-4 mr-2" />
-                                Amis ({friends.length})
+                        <TabsList className="grid w-full grid-cols-3">
+                            <TabsTrigger value="friends" className="text-xs sm:text-sm px-1 sm:px-3 gap-1">
+                                <Users className="h-4 w-4 shrink-0" />
+                                <span className="truncate">Amis ({friends.length})</span>
                             </TabsTrigger>
-                            <TabsTrigger value="requests">
-                                <Clock className="h-4 w-4 mr-2" />
-                                Demandes ({pendingRequests.length})
+                            <TabsTrigger value="requests" className="text-xs sm:text-sm px-1 sm:px-3 gap-1">
+                                <Clock className="h-4 w-4 shrink-0" />
+                                <span className="truncate">Demandes ({pendingRequests.length})</span>
                             </TabsTrigger>
-                            <TabsTrigger value="search">
-                                <Search className="h-4 w-4 mr-2" />
-                                Rechercher
+                            <TabsTrigger value="search" className="text-xs sm:text-sm px-1 sm:px-3 gap-1">
+                                <Search className="h-4 w-4 shrink-0" />
+                                <span className="truncate">Rechercher</span>
                             </TabsTrigger>
                         </TabsList>
 
@@ -220,16 +234,44 @@ export default function SocialPage() {
                         <TabsContent value="friends" className="mt-6">
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Mes amis</CardTitle>
-                                    <CardDescription>
-                                        {friends.length === 0
-                                            ? "Vous n'avez pas encore d'amis"
-                                            : `${friends.length} ami${friends.length > 1 ? "s" : ""}`}
-                                    </CardDescription>
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <CardTitle>Mes amis</CardTitle>
+                                            <CardDescription>
+                                                {friends.length === 0
+                                                    ? "Vous n'avez pas encore d'amis"
+                                                    : `${friends.length} ami${friends.length > 1 ? "s" : ""}`}
+                                            </CardDescription>
+                                        </div>
+                                        {friends.length > 1 && (
+                                            <div className="flex gap-1">
+                                                <Button
+                                                    size="sm"
+                                                    variant={friendSortOrder === "date" ? "default" : "outline"}
+                                                    onClick={() => setFriendSortOrder("date")}
+                                                    className="gap-1 text-xs h-8"
+                                                    title="Trier par date d'ajout"
+                                                >
+                                                    <CalendarClock className="h-3.5 w-3.5" />
+                                                    <span className="hidden sm:inline">Date</span>
+                                                </Button>
+                                                <Button
+                                                    size="sm"
+                                                    variant={friendSortOrder === "alphabetical" ? "default" : "outline"}
+                                                    onClick={() => setFriendSortOrder("alphabetical")}
+                                                    className="gap-1 text-xs h-8"
+                                                    title="Trier par ordre alphabétique"
+                                                >
+                                                    <ArrowDownAZ className="h-3.5 w-3.5" />
+                                                    <span className="hidden sm:inline">A-Z</span>
+                                                </Button>
+                                            </div>
+                                        )}
+                                    </div>
                                 </CardHeader>
                                 <CardContent>
                                     <div className="space-y-4">
-                                        {friends.map((friendship) => (
+                                        {sortedFriends.map((friendship) => (
                                             <Link
                                                 key={friendship.id}
                                                 href={`/profile/${friendship.friend.id}`}
@@ -251,6 +293,9 @@ export default function SocialPage() {
                                                         </p>
                                                         <p className="text-sm text-muted-foreground">
                                                             {friendship.friend.totalCO2Saved.toFixed(1)} kg CO₂ économisés
+                                                            {friendship.friend.currentStreak != null && friendship.friend.currentStreak > 0 && (
+                                                                <span className="ml-2 text-orange-500 inline-flex items-center gap-0.5"><Flame className="size-3.5" /> {friendship.friend.currentStreak}j</span>
+                                                            )}
                                                         </p>
                                                     </div>
                                                 </div>

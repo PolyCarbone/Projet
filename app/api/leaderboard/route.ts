@@ -27,6 +27,7 @@ export async function GET() {
                 name: true,
                 username: true,
                 totalCO2Saved: true,
+                currentStreak: true,
                 avatar: {
                     select: {
                         id: true,

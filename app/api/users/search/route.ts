@@ -27,12 +27,33 @@ export async function GET(req: NextRequest) {
 
         const emailSearch = isEmail(query.trim())
 
+        // Récupérer les IDs des amis existants et demandes en cours
+        const existingFriendships = await prisma.friendship.findMany({
+            where: {
+                OR: [
+                    { initiatorId: session.user.id },
+                    { receiverId: session.user.id },
+                ],
+                status: { in: ["accepted", "pending"] },
+            },
+            select: {
+                initiatorId: true,
+                receiverId: true,
+            },
+        })
+
+        const excludedUserIds = new Set<string>([session.user.id])
+        for (const f of existingFriendships) {
+            excludedUserIds.add(f.initiatorId)
+            excludedUserIds.add(f.receiverId)
+        }
+
         const users = await prisma.user.findMany({
             where: {
                 AND: [
                     {
                         id: {
-                            not: session.user.id,
+                            notIn: Array.from(excludedUserIds),
                         },
                     },
                     {

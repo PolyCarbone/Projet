@@ -32,6 +32,7 @@ export async function GET(req: NextRequest) {
                         avatar: true,
                         avatarBorderColor: true,
                         totalCO2Saved: true,
+                        currentStreak: true,
                     },
                 },
                 receiver: {
@@ -42,6 +43,7 @@ export async function GET(req: NextRequest) {
                         avatar: true,
                         avatarBorderColor: true,
                         totalCO2Saved: true,
+                        currentStreak: true,
                     },
                 },
             },

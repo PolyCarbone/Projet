@@ -443,6 +443,26 @@ async function seedUsers() {
         });
     }
 
+    // Assigner les avatars (avatars disponibles à l'onboarding : 1, 4, 6)
+    const onboardingAvatarIds = ['avatar-avatar-1', 'avatar-avatar-4', 'avatar-avatar-6'];
+    const avatarAssignments: Record<string, string> = {
+        'user-alice-001': onboardingAvatarIds[0],
+        'user-bob-002': onboardingAvatarIds[1],
+        'user-claire-003': onboardingAvatarIds[2],
+        'user-david-004': onboardingAvatarIds[0],
+        'user-emma-005': onboardingAvatarIds[1],
+        'user-francois-006': onboardingAvatarIds[2],
+        'user-gabrielle-007': onboardingAvatarIds[0],
+        'user-hugo-008': onboardingAvatarIds[1],
+    };
+
+    for (const [userId, avatarId] of Object.entries(avatarAssignments)) {
+        await prisma.user.update({
+            where: { id: userId },
+            data: { avatarId },
+        });
+    }
+
     // Assigner les bannières individuellement (champ @unique)
     const bannerAssignments: Record<string, string> = {
         'user-alice-001': 'banner-banniere-verte',

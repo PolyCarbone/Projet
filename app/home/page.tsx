@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Sparkles, Trophy, Medal, Crown, ChevronRight, Globe, Users } from "lucide-react"
+import { Sparkles, Trophy, Medal, Crown, ChevronRight, Globe, Users, Flame } from "lucide-react"
 
 interface LeaderboardEntry {
   id: string
@@ -17,6 +17,7 @@ interface LeaderboardEntry {
   avatar?: { id: string; name: string; imageUrl: string } | null
   avatarBorderColor?: string | null
   totalCO2Saved: number
+  currentStreak?: number
 }
 
 export default function Home() {
@@ -134,10 +135,15 @@ export default function Home() {
               size="sm"
               clickable
             />
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 flex items-center gap-2">
               <p className="text-sm font-medium truncate">
                 {entry.username}
               </p>
+              {entry.currentStreak != null && entry.currentStreak > 0 && (
+                <div className="flex items-center gap-0.5 text-orange-500 dark:text-orange-400 font-medium text-xs whitespace-nowrap" title="Streak">
+                  <Flame className="size-3.5" /> {entry.currentStreak}
+                </div>
+              )}
             </div>
             <div className="flex items-center gap-1 text-green-600 dark:text-green-400 font-semibold text-sm whitespace-nowrap">
               {entry.totalCO2Saved.toFixed(1)} kg

@@ -166,8 +166,7 @@ export function CarbonFootprintPieChart({ data }: CarbonFootprintChartProps) {
     return (
         <Card className="flex flex-col">
             <CardHeader className="items-center pb-0">
-                <CardTitle>Répartition par catégorie</CardTitle>
-                <CardDescription>Estimation de votre empreinte annuelle</CardDescription>
+                <CardTitle>Votre empreinte annuelle par catégorie</CardTitle>
             </CardHeader>
             <CardContent className="flex-1 pb-0">
                 <ChartContainer

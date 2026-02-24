@@ -46,22 +46,96 @@ export default function ChallengesPage() {
         loadChallenges()
     }, [])
 
+    /**
+     * Sélectionne les défis quotidiens en priorisant les 2 catégories les plus
+     * impactantes de l'empreinte carbone de l'utilisateur :
+     *   - 2 défis pour la catégorie n°1
+     *   - 1 défi pour la catégorie n°2
+     * Si une catégorie n'a pas assez de défis disponibles, on complète
+     * aléatoirement avec les défis restants.
+     */
+    const pickPrioritizedDailies = (
+        available: Challenge[],
+        needed: number,
+        topCategories: string[]
+    ): Challenge[] => {
+        if (topCategories.length === 0) {
+            // Pas de données d'empreinte : sélection aléatoire
+            return available.sort(() => Math.random() - 0.5).slice(0, needed)
+        }
+
+        const picked: Challenge[] = []
+        const remaining = [...available]
+
+        // Quotas : 2 pour la 1re catégorie, 1 pour la 2e
+        const quotas = [
+            { category: topCategories[0], count: Math.min(2, needed) },
+            ...(topCategories.length > 1 ? [{ category: topCategories[1], count: Math.min(1, needed - Math.min(2, needed)) }] : []),
+        ]
+
+        for (const { category, count } of quotas) {
+            if (picked.length >= needed) break
+            const catChallenges = remaining
+                .filter(c => c.category === category)
+                .sort(() => Math.random() - 0.5)
+            const take = catChallenges.slice(0, count)
+            picked.push(...take)
+            // Retirer les défis sélectionnés du pool
+            for (const t of take) {
+                const idx = remaining.findIndex(c => c.id === t.id)
+                if (idx !== -1) remaining.splice(idx, 1)
+            }
+        }
+
+        // Compléter avec des défis aléatoires si besoin
+        if (picked.length < needed) {
+            const filler = remaining.sort(() => Math.random() - 0.5).slice(0, needed - picked.length)
+            picked.push(...filler)
+        }
+
+        return picked
+    }
+
     const loadChallenges = async () => {
         try {
             setLoading(true)
-            const response = await fetch('/api/challenges')
-            if (!response.ok) throw new Error('Erreur de chargement')
 
-            const data = await response.json()
+            // Charger en parallèle les défis et l'empreinte carbone
+            const [challengeRes, footprintRes] = await Promise.all([
+                fetch('/api/challenges'),
+                fetch('/api/carbon-footprint'),
+            ])
+
+            if (!challengeRes.ok) throw new Error('Erreur de chargement')
+
+            const data = await challengeRes.json()
             const all: Challenge[] = data.challenges
+
+            // Extraire les 2 catégories les plus impactantes
+            let topCategories: string[] = []
+            if (footprintRes.ok) {
+                const fp = await footprintRes.json()
+                const categoryMap: Record<string, string> = {
+                    transport: 'transport',
+                    alimentation: 'alimentation',
+                    logement: 'logement',
+                    divers: 'divers',
+                    serviceSocietal: 'serviceSocietal',
+                }
+                const entries = Object.entries(categoryMap)
+                    .map(([key, cat]) => ({ cat, value: (fp[key] as number) ?? 0 }))
+                    .filter(e => e.value > 0)
+                    .sort((a, b) => b.value - a.value)
+                topCategories = entries.slice(0, 2).map(e => e.cat)
+            }
 
             // Auto-accepter des défis quotidiens si pas encore 3 actifs
             const activeDailies = all.filter(c => c.type === 'daily' && c.userStatus?.status === 'active')
             const needed = DAILY_COUNT - activeDailies.length
             if (needed > 0) {
                 const available = all.filter(c => c.type === 'daily' && (!c.userStatus || c.userStatus.status === 'skipped' || c.userStatus.status === 'changed'))
-                const shuffled = available.sort(() => Math.random() - 0.5).slice(0, needed)
-                for (const c of shuffled) {
+                const selected = pickPrioritizedDailies(available, needed, topCategories)
+                for (const c of selected) {
                     await fetch('/api/challenges/accept', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },

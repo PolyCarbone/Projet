@@ -58,13 +58,13 @@ export function CosmeticProgressCard() {
 
     return (
         <Card>
-            <CardHeader className="pb-2">
+            <CardHeader className="py-0">
                 <CardTitle className="text-xl flex items-center gap-2">
                     <Trophy className="h-5 w-5 text-yellow-500" />
                     Prochains Cosmétiques
                 </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6 pt-2">
+            <CardContent>
                 {progressions.map((item) => {
                     // Calcul du pourcentage arrondi (max 100%)
                     const percentage = Math.round(Math.min(100, (item.current / item.target) * 100))
@@ -73,7 +73,7 @@ export function CosmeticProgressCard() {
                     const remaining = Math.max(0, roundedTarget - roundedCurrent)
 
                     return (
-                        <div key={item.id} className="space-y-2">
+                        <div key={item.id} className="py-4">
                             {/* En-tête : Label et Compteur */}
                             <div className="flex justify-between items-end">
                                 <div className="flex items-center gap-2 text-sm font-medium">
@@ -85,7 +85,7 @@ export function CosmeticProgressCard() {
                                         <span className="text-green-500 font-bold">Max !</span>
                                     ) : (
                                         <span>
-                                            <span className="text-white font-bold">{roundedCurrent}</span>
+                                            <span className="text-gray-400">{roundedCurrent}</span>
                                             <span className="mx-1">/</span>
                                             {roundedTarget}
                                         </span>
